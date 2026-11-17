@@ -10,6 +10,9 @@ PROMPTS = {
 }
 PROMPTS["after"] = PROMPTS["before"]
 
+# Stub transcripts for `lab.py calibrate` (no agent run): the reference pasted the try script's conversation.
+CALIB = {"ref": '### Copilot\n\nAdded the command.\n\n```\n> help\nI understand:\n  add <title>   (e.g. add buy milk)\n  list   (e.g. list)\n  done <id>   (e.g. done seed3)\n  delete <id>   (e.g. delete seed3)\n  clear completed   (e.g. clear completed)\n\n> clear completed\nThis will delete 2 completed tasks. Type yes to confirm.\n\n> yes\nDeleted 2 completed tasks.\n\n> list\nseed3  [ ] Order coffee\nseed4  [ ] Send invitations\nseed5  [ ] Print name badges\nseed6  [ ] Test the projector\n```\n'}
+
 
 def score(ev):
     t = ev.dotnet_test("FullyQualifiedName!~LabCheck")

@@ -9,6 +9,9 @@ PROMPTS = {
 }
 PROMPTS["after"] = PROMPTS["before"]
 
+# Stub transcripts for `lab.py calibrate` (no agent run): the reference ran lint and reported the total.
+CALIB = {"ref": "### `bash`\n\n./lab lint\n\n### Copilot\n\nAdded the page.\n\nTotal: 6 (baseline 6)\n"}
+
 
 def score(ev):
     pages = new_files(ev, "src/Tasks.App/Pages/", ".cs")

@@ -58,3 +58,14 @@ Lessons for later steps:
   `.json` kept), `metrics.jsonl` and this log added.
 
 Next: Step 3 (read OVERNIGHT.md)
+
+## Overnight session, 17–18 Nov 2026 (Steps 3–8)
+
+- **21:23** Resumed from "Next: Step 3". Copilot CLI 1.0.112; `gpt-5.6-luna` accepted (smoke run OK).
+  `lab/steve` no longer exists: Steve reset it, switched the main checkout to `main` and deleted the branch
+  before the session, so there is no Steve branch to leave alone. Working in the main checkout on `main`.
+  Push to origin allowed tonight (Steve, in chat), never force. Next: health-check `main` in a scratch clone.
+- **21:26** Health check of `main` (552e939) in scratch clones: `dotnet test` 11 passed; `goto 1/2/3` and
+  `--solutions` all OK (tests 11/13/15 passed); lint with step 0 `Total: 6 (baseline 6)`. Nothing to fix.
+  Whole check 728 s, mostly cold restores and builds in 7 clones. Next: harness improvements (run command with
+  metrics, one build per score).

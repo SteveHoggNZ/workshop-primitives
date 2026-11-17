@@ -10,6 +10,21 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 - Clones in `../.lab-runs/`, built with `./lab goto`, `.lab/` removed; `COPILOT_HOME` isolated in
   `../.lab-homes/<model>`; `--allow-all --trust-folder --share`.
 
+- **From Step 3 on (18 Nov overnight): `gpt-5.6-luna` in both arms**, Before and After (and every arm of Step 8).
+  Copilot CLI 1.0.112, .NET SDK 10.0.102. Steps 1–2 were validated with a `gpt-6.1-sol` Before; same model in
+  both arms from Step 3 keeps it to one variable: the primitive. At least 3 runs per arm.
+- Runs go through `lab.py run` (adds `--no-ask-user` and `--usage-output-file`; one fresh session per turn).
+
+## Harness changes
+
+- **One build per score** (18 Nov): `score` copies the step's hidden checks in, runs `dotnet test` once and reads the
+  visible tests and the `LabCheckNN` results from the same TRX, filtered by class name. If the build fails with the
+  checks in, it runs once more without them so the visible tests are still judged on their own (as before). Checked
+  on four calibration clones scored with the old and new code: identical (s01 ref 6/6, base 0/6; s02 ref 6/6,
+  base 0/6). Warm re-score dropped to about 5 s a clone.
+- `calibrate STEP` (reference patch + stub transcript from the scorer's `CALIB`, and an untouched clone, in
+  parallel), `run` (Copilot CLI with timing and usage), `metrics`, and parallel `prepare`/`score`.
+
 ## Counted
 
 | Step | Before | After | Verdict |
@@ -28,6 +43,7 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s02-after-gpt-5.6-luna-v2r1`, `-v2r2` (5/6, 5/6) | Skill v2, superseded by one sentence. Both loaded the skill and ran `try.cs`, then summarised it ("try script confirmed") instead of pasting it. The skill now says to paste the output unchanged. The v2 Befores still count: the Before arm doesn't have the skill |
 | `s02-after-calib-ref2`, `s02-before-calib-base2`, `s01-after-calib-ref3` | Calibration for Step 2 v2 (6/6, 0/6) and Step 1 after its patch context changed (6/6) |
 | `s01-before-gpt-6.1-sol-r3` (1/6), `s01-after-gpt-5.6-luna-r3` (6/6) | Step 1 regression check after the `/Agent` base app: same result as the counted runs. Not added to the table, which stays at 2 runs per arm |
+| `s01-*-calib-calib-ref-1117212852`, `s01-*-calib-base-…`, `s02-*` (same stamp) | Calibration with the new one-build scorer (6/6, 0/6, 6/6, 0/6), also scored with the old code to confirm no change (old-code scores not kept in `results.jsonl`) |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |
 
 ## Scorer fixes
