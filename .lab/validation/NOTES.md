@@ -31,6 +31,7 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 |---|---|---|---|
 | 1 | 1/6, 1/6 | 6/6, 6/6 | Validated. No flips |
 | 2 | 3/6, 3/6 (`v2r1`, `v2r2`) | 6/6, 6/6 (`v3r1`, `v3r2`) | Validated. Befores pass 1, 2, 4. Afters loaded the skill and ran `try.cs` |
+| 4 | 2/5, 2/5, 2/5 (`v1-r1..r3`, Luna) | 5/5, 5/5, 5/5 (`v1-r1..r3`, Luna) | Validated (v1). Befores fixed both bugs and added tests in one patch, never saw a test fail. Afters loaded the skill, two red/green/done rounds each |
 | 3 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v1-r1..r3`, Luna) | Validated (v1). Befores found the drift (item 1) and rewrote the doc. Afters used only view/glob/rg |
 
 ## Not counted
@@ -50,9 +51,14 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s03-before-gpt-5.6-luna-probe-ask1`, `-ask2` | Probe: default agent with "Don't change any files." added. Both changed nothing. Reported honestly in the walkthrough: the request holds for a short direct prompt |
 | `s03-after-gpt-5.6-luna-probe-notools1..3` | Control probe (after the independent review): agent file with the `tools:` line deleted, prompt "...: edit the file." 2 of 3 edited the doc (`apply_patch`), against 0 of 2 with the tool list (`probe-fix`, `probe-sed`) |
 | `s03-after-gpt-5.6-luna-probe-sed` | Probe: reviewer told to use `sed -i` if edit tools fail. Only view/glob; nothing changed |
+| `s0{1,2,3,4}-*-calib-*-1117221057` | Regression calibration after the Dashboard base change (`f1fbf64`): s01 6/6 0/6, s02 6/6 0/6, s03 4/4 1/4; Step 4's own calibration 5/5 0/5 |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |
 
 ## Scorer fixes
+
+- Step 4, items 3 and 4: a long shell command can return early and print its output in a later `read_bash`
+  call (After r2's first `./lab tdd green`). New `common.shell_runs()` joins those outputs to their command.
+  Re-scored all 8 Step 4 scorings: After r2 4/5 → 5/5, the rest unchanged.
 
 - Step 3 (after the independent review, before any write-up was final): the `Total:` line is read only
   after the report (AGENTS.md also asks for lint's `Total:`); numbered lists, `+` bullets, continuation

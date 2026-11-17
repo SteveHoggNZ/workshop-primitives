@@ -10,7 +10,7 @@ Items (baseline = both arms should pass; lesson = only the primitive supplies it
 
 import re
 
-from common import calls, final_message, first_edit
+from common import calls, final_message, first_edit, shell_runs
 
 BUGS = ("The dashboard has two bugs. 1) /Dashboard returns a 500 error when there are no tasks; it "
         "should show 0%. 2) On a Monday morning in Auckland (for example 2026-11-16 08:00 +13:00) "
@@ -19,15 +19,14 @@ PROMPTS = {"before": BUGS + " Fix both."}
 PROMPTS["after"] = PROMPTS["before"]
 CHECKS = ["LabCheck04"]
 
-SHELLS = {"bash", "shell", "powershell"}
 RED = re.compile(r"Failed!\s*-\s*Failed:\s*[1-9]|GREEN: \d+ failing|\[FAIL\]|^\s*Failed Tasks\.App\.Tests\.", re.M)
 
 
 def _red_runs(ev):
     """Positions of shell calls whose output shows a test failing (not a build error)."""
     out = []
-    for pos, name, body in calls(ev):
-        if name in SHELLS and re.search(r"dotnet test|lab tdd green", body) and RED.search(body) and "error CS" not in body:
+    for pos, cmd, body in shell_runs(ev):
+        if re.search(r"dotnet test|lab tdd green", cmd) and RED.search(body) and "error CS" not in body:
             out.append(pos)
     return out
 
@@ -37,7 +36,7 @@ def _src_edit(ev):
 
 
 def _tdd(ev, sub, ok_word):
-    return any(name in SHELLS and f"lab tdd {sub}" in body and ok_word in body for _, name, body in calls(ev))
+    return any(f"lab tdd {sub}" in cmd and ok_word in body for _, cmd, body in shell_runs(ev))
 
 
 def primitive_used(ev):

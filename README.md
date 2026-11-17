@@ -33,6 +33,7 @@ dotnet run --project src/Tasks.App    # then open the URL it prints
 | 1 | Project instructions (`AGENTS.md`) and a scoped rule |
 | 2 | A skill with a tested script, and a prompt file |
 | 3 | A custom agent with its own tool list |
+| 4 | A skill backed by a lab command |
 
 Each step: run the Before prompt in a new agent session, `./lab reset`, `./lab apply N`, read what
 was installed, then run the same prompt in another new session and compare.

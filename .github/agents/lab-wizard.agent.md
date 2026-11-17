@@ -56,6 +56,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
   then `no`; `clear completed` then `yes`), and the pasted final message (item 6, the live run).
 - **Step 3**'s After runs **as** the `docs-reviewer` agent (agent picker in VS Code, `--agent docs-reviewer`
   in the CLI), not the default agent. Score it from `git status`, `git diff` and the pasted final message.
+- **Step 4** items 3 and 4 depend on the order of commands in the session, so read them with the
+  session skill's script; item 5 is in the final message.
 
 ## Rules
 

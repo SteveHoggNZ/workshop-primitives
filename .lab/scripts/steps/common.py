@@ -57,3 +57,23 @@ def first_call(ev, pred) -> Optional[int]:
         if pred(name, body):
             return pos
     return None
+
+
+SHELLS = {"bash", "shell", "powershell"}
+SHELL_READS = {"read_bash", "read_powershell", "write_bash", "write_powershell"}
+
+
+def shell_runs(ev) -> List[Tuple[int, str, str]]:
+    """Shell commands in transcript order: (position, command line, output).
+
+    A long command can return before it finishes; its output then arrives in later read_bash calls
+    (found in Step 4: `./lab tdd green` printed GREEN in a read_bash). Those outputs are joined to the
+    command they belong to, so a check can look at the command and its output together."""
+    out: List[List] = []
+    for pos, name, body in calls(ev):
+        if name in SHELLS:
+            m = re.search(r"`\$ ([^`]*)`", body)
+            out.append([pos, m.group(1) if m else body[:200], body])
+        elif name in SHELL_READS and out:
+            out[-1][2] += "\n" + body
+    return [tuple(x) for x in out]

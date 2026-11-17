@@ -92,3 +92,22 @@ Next: Step 3 (read OVERNIGHT.md)
   (one pushed to `sed -i`). Should-fix scorer: Total clash with AGENTS.md's lint Total, numbered lists and link
   paths, loose path check, `Reports` regex. Fixed; re-scored all 8: unchanged. Windows note, wording nits.
   Next: commit, then Step 4.
+
+### Step 4: TDD skill with phase state
+
+- **22:00** Step 4 started. Base change `f1fbf64`: /Dashboard page + `TaskStats` with PORT-PLAN P4's two bugs (integer
+  percent throws on empty; week start from the UTC date), a visible 50% test, nav link, accurate architecture rows
+  (drift key unchanged), and `./lab tdd red|green|done|status` (TRX-based: refuses on a compile error, records the
+  failing tests, `done` refuses if they're gone). Not in `./lab help` (no pointer for a Before). Dashboard markup
+  doesn't use Step 1's conventions (would leak to the Step 1 Before). Lint still `Total: 6`.
+  Machine slow tonight: `dotnet test` 0.7 s → 11–50 s per run while mediaanalysisd/Defender use the CPU. Next: design.
+- **22:10** Design v1: Python step 6 prompt (Dashboard, Monday 08:00 +13:00). Items: 1 baseline fixed (hidden checks via
+  the page) + suite; 2 baseline tests cover both; 3 lesson a failing test run before the first src/ edit; 4 lesson
+  `lab tdd` GREEN and DONE; 5 lesson final message pastes the FAIL line. Commit `b02f925` (also step01.patch context,
+  same +/- lines). Calibration: s01 6/6 0/6, s02 6/6 0/6, s03 4/4 1/4, s04 5/5 0/5. Next: pilot.
+- **22:25** Pilot: `s04-before-gpt-5.6-luna-v1-r1` 2/5 (fix + tests in one patch, then one green run), `s04-after-…-v1-r1`
+  5/5 (skill loaded, two red/green/done rounds, both FAIL lines pasted). Next: r2, r3.
+- **22:35** r2, r3: Before 2/5, 2/5; After 4/5, 5/5. After r2's miss was a scorer bug: its first `lab tdd green` returned
+  early and the GREEN output came in a `read_bash` call. Added `common.shell_runs()`; re-scored all 8: After r2 → 5/5,
+  others unchanged. Gate passes (lesson items 3–5: Before 0/3, After 3/3). Sessions: Before 64–95 s, After 186–202 s.
+  `goto 1..5 [--solutions]` all OK on the new base. Next: walkthrough, commit, review.
