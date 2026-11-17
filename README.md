@@ -27,6 +27,12 @@ dotnet run --project src/Tasks.App    # then open the URL it prints
 ./lab goto 3          # catch up: install every step before 3
 ```
 
+| Step | Primitive |
+|---|---|
+| 0 | Warm-up: a linter the agent can read (VS Code) |
+| 1 | Project instructions (`AGENTS.md`) and a scoped rule |
+| 2 | A skill with a tested script, and a prompt file |
+
 Each step: run the Before prompt in a new agent session, `./lab reset`, `./lab apply N`, read what
 was installed, then run the same prompt in another new session and compare.
 

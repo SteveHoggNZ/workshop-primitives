@@ -52,6 +52,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
   question, not a code change, so score from the pasted answers. Part C (finding callers) is a
   showcase, not scored.
 - **Step 1** is scored from the diff plus the pasted final message (item 5, the `Total:` line).
+- **Step 2** is scored from the diff, `dotnet test`, a few commands typed at `/Agent` (`clear completed`
+  then `no`; `clear completed` then `yes`), and the pasted final message (item 6, the live run).
 
 ## Rules
 
