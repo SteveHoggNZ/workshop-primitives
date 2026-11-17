@@ -43,13 +43,15 @@ A command is done only when all six steps are done. Do them in order.
 
 ## 6. Try it
 
-Run the skill's script. It sends messages to the agent against a fresh, seeded task list. Paste its output
-in your final message:
+Run the skill's script. It sends messages to the agent against a fresh, seeded task list:
 
 ```sh
 dotnet run --no-cache .agents/skills/add-agent-tool/scripts/try.cs -- "help" "<your command>" "yes" "list"
 ```
 
 Keep `--no-cache`: without it the script can reuse an old build and show the agent as it was before your change.
+
+**Paste the script's output, unchanged, in a code block in your final message.** A summary ("the try script
+confirmed it") doesn't count: the reviewer reads the conversation to check the prompt and the reply wording.
 
 Then run `dotnet test`.
