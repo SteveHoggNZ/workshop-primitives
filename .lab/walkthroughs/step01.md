@@ -3,7 +3,20 @@
 Every step is an experiment: run a prompt **without** the primitive, install it, run the **same**
 prompt again in a new session, and compare. If you install first, there's nothing to compare against.
 
-Start from step 0 installed: `./lab list` shows `[x] 00  lint`. If not, `./lab goto 1`.
+**Before you start:** Step 0 must be installed. Check with:
+
+```bash
+./lab list
+```
+
+You should see an `x` next to step 00:
+
+```text
+[x] 00  lint
+[ ] 01  instructions
+```
+
+If step 00 has no `x`, run `./lab goto 1` to install it.
 
 1. **Before.** Start a new agent session (don't install anything yet) and give it this prompt:
 
