@@ -31,8 +31,6 @@ If step 00 has no `x`, run `./lab goto 1` to install it.
 4. **After.** Start a **new** session (old ones don't see new files), give it the same prompt, and score it again.
 5. **Compare** the two scores, then read on.
 
-> The rest of this page reveals the checklist answers. Read it after your Before run.
-
 ## Checklist (one point each)
 
 | # | The result... |
@@ -43,6 +41,8 @@ If step 00 has no `x`, run `./lab goto 1` to install it.
 | 4 | adds a line under `## Unreleased` in `CHANGELOG.md` |
 | 5 | quotes the `./lab lint` `Total:` line in the agent's final message |
 | 6 | follows the page template conventions: `<section data-page="completed">`, rows `data-testid="task-row"` with `data-task-id`, and `<partial name="_Empty" />` for no tasks |
+
+> The rest of this page explains what to look for. Read it after your Before run.
 
 ## Quick links
 

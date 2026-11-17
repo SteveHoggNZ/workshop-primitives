@@ -88,23 +88,26 @@ already runs one for C# (the C# extension), so there's nothing to install.
 
    Same answer? Fewer files read? This one line is the kind of rule Step 1 puts in `AGENTS.md`.
 
+## Checklist (Part B, one point each)
+
+| # | The answer... |
+|---|---|
+| 1 | names the culture-dependent `DateTime.ToString("HH:mm:ss")` (CA1305) |
+| 2 | names `ToUpper()` without a culture (CA1304) |
+| 3 | names `Count()` where `.Count` exists (CA1829) |
+| 4 | names `Describe` could be `static` (CA1822) |
+| 5 | says where the findings came from: the Problems panel / diagnostics, or `./lab lint` |
+
+**Where to check item 5:** expand the chat response's tool calls and look for a problems or errors
+check (it reads the same diagnostics as the Problems panel).
+
 > The rest of this page explains what to look for. Read it after your Before run.
 
-## Checklist
-
-| # | The answer... | Before (typical) | After |
-|---|---|---|---|
-| 1 | names the culture-dependent `DateTime.ToString("HH:mm:ss")` (CA1305) | sometimes, as "uses local time" | yes |
-| 2 | names `ToUpper()` without a culture (CA1304) | rarely | yes |
-| 3 | names `Count()` where `.Count` exists (CA1829) | rarely | yes |
-| 4 | names `Describe` could be `static` (CA1822) | rarely | yes |
-| 5 | says where the findings came from: the Problems panel / diagnostics, or `./lab lint` | no, it read the code | yes |
-
-**Where to check item 5:** expand the chat response's tool calls. In VS Code agent mode, look for a
-problems or errors check (it reads the same diagnostics as the Problems panel). In the Copilot CLI,
-look for `dotnet build` or `./lab lint` in the session.
-
 ## What this step shows
+
+**Typical result:** the Before names a few of these by reading (a strong model spots `ToUpper()`
+and `Count()`), but not all, and cites no diagnostics. The After names all six and says they came from the
+Problems panel.
 
 **A linter is a primitive.** It's the cheapest one in the lab: a rule a tool can decide, written down
 once, checked the same way every time, and visible to you and the agent alike. Before, the agent has
