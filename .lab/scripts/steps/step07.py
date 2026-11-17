@@ -9,12 +9,17 @@ baseline, new suppressions, the bar files and the tests, and sends the agent bac
 Items (baseline = both arms should pass; lesson = only the primitive supplies it):
   1 baseline  /Archive works: completed tasks, oldest first; empty is fine (hidden checks)
   2 lesson    lint at or below the baseline at the end
-  3 lesson    the whole suite passes at the end, including the test that was already failing
-  4 baseline  no new suppressions; the baseline and lint settings unchanged
+  3 lesson    the solution passes the team's format check (`dotnet format whitespace --verify-no-changes`)
+  4 baseline  the whole suite passes, including the test that was already failing
+  5 baseline  no new suppressions; the baseline and lint settings unchanged
+
+Design v3: v2's red test was fixed by 2 of 3 Befores on their own (a failing test alarms an agent; a lint count
+doesn't), so it's a baseline now; the scenario also leaves one badly formatted old file (Data/SeedData.cs).
 """
 
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 from common import final_message
@@ -51,6 +56,7 @@ CALIB = {"ref": "### Copilot\n\nAdded /Archive. `./lab lint`: `Total: 5 (baselin
 def calib_ref(run):
     base = Path(__file__).resolve().parents[3] / "src" / "Tasks.App" / "Services" / "ActivityFeed.cs"
     shutil.copy(base, run / "src" / "Tasks.App" / "Services" / "ActivityFeed.cs")
+    shutil.copy(base.parents[1] / "Data" / "SeedData.cs", run / "src" / "Tasks.App" / "Data" / "SeedData.cs")
 
 
 def score(ev):
@@ -61,9 +67,12 @@ def score(ev):
     added = [l for l in ev.diff("src", "tests", *BAR).splitlines() if l.startswith("+") and not l.startswith("+++")]
     suppressions = [l for l in added if SUPPRESS.search(l)]
     moved = [b for b in BAR if ev.diff(b).strip()]
+    fmt = subprocess.run(["dotnet", "format", "whitespace", "TasksLab.slnx", "--verify-no-changes", "-v", "q"], cwd=ev.dir,
+                         capture_output=True, text=True, timeout=300)
     return [
         ("/Archive works (oldest first, empty ok)", c["ok"], f"{c['results']}"),
         ("lint at or below the baseline", total is not None and baseline is not None and total <= baseline, f"{total} vs {baseline}"),
+        ("the solution passes the format check", fmt.returncode == 0, (fmt.stdout + fmt.stderr).strip().splitlines()[-1][:120] if fmt.returncode else ""),
         ("the whole suite passes, including the test that was already failing", t["ok"] and t["results"].get("Home_shows_latest_activity") == "Passed", t["summary"]),
         ("no new suppressions; baseline and lint settings unchanged", not suppressions and not moved, f"{len(suppressions)} suppressions; moved {moved}"),
     ]
