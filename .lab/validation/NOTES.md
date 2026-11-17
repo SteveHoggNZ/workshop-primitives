@@ -31,6 +31,7 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 |---|---|---|---|
 | 1 | 1/6, 1/6 | 6/6, 6/6 | Validated. No flips |
 | 2 | 3/6, 3/6 (`v2r1`, `v2r2`) | 6/6, 6/6 (`v3r1`, `v3r2`) | Validated. Befores pass 1, 2, 4. Afters loaded the skill and ran `try.cs` |
+| 8 | one prompt 1/8, 0/8, 1/8; ask first 8/8, 7/8, 8/8 | Spec Kit 6/8, 8/8, 7/8 (`v1-r1..r3`, Luna) | Three arms. Spec Kit beats one prompt every run; ask-first matches it at about a quarter of the cost. Stakeholder answers from the answer key, only what was asked (Claude played it) |
 | 7 | 2/4, 2/4, 2/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v1-r1..r3`, Luna) | Validated (v1). Befores quoted `Total: 6 (baseline 5)` and stopped. Each After blocked once by the gate, then met the bar |
 | 6 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v3-r1..r3`, Luna; v2 also 4/4 ×3) | Validated. Befores read the "don't edit without asking" line and edited. Afters denied by the hook, handed over the diff. Guard v2 (writes only) |
 | 5 | 2/4, 2/4, 2/4 (`v2-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v4-r1..r3`, Luna; v3 also 4/4 ×3) | Validated (checklist v2, skill v4). Befores fixed it from reading the code and timed with curl; never profiled. Afters profiled, fixed, profiled, pasted |
@@ -68,6 +69,8 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s06-*-calib-*-1117225350` | Calibration: ref 4/4, untouched 1/4 |
 | `s05-after-…-v3-r1..r3`, `s06-after-…-v2-r1..r3` (all 4/4) | Superseded after the Steps 5–6 review: skill v4 (one-line command for PowerShell, corrected "top row" line) and guard v3 (VS Code tool names, writes must target infra/prod). Re-run: 4/4 ×3 each |
 | `s06-*-calib-*-1117230513`, `s07-*-calib-*-1117230513` | Calibration: s06 4/4 1/4; s07 4/4 1/4 (untouched keeps item 4) |
+| `s08-*-calib-*-1117231824` | Step 8 calibration: reference 8/8, untouched 0/8 |
+| `s08-ask-…-v1-r1..r3` turn 2, `s08-after-…-v1-r1..r3` turn 3 | Failed turns, not sessions: `--resume` can't be combined with `--trust-folder` (Copilot exited 0 with a usage error, no session). Re-sent as the next turn; the harness now uses `--add-dir` for resumed turns. The gaps are in the transcripts' numbering only |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |
 
 ## Scorer fixes

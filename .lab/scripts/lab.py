@@ -338,7 +338,10 @@ def _append_turn(run_id, meta, turn, timeout, flags):
                 (RUNS / f"{run_id}{ext}").rename(RUNS / f"{run_id}-t1{ext}")
     n = len(record["turns"]) + 1
     transcript, usage_file = RUNS / f"{run_id}-t{n}.md", RUNS / f"{run_id}-t{n}.usage.json"
-    cmd = ["copilot", "-p", turn["prompt"], "--model", meta["model"], "--allow-all", "--trust-folder", "--no-ask-user",
+    resumed = any(f.startswith(("--resume", "--continue")) for f in flags)
+    # A resumed session can't take --trust-folder; --add-dir keeps the clone's .github config trusted.
+    trust = ["--add-dir", str(RUNS / run_id)] if resumed else ["--trust-folder"]
+    cmd = ["copilot", "-p", turn["prompt"], "--model", meta["model"], "--allow-all", *trust, "--no-ask-user",
            "--share", str(transcript), "--usage-output-file", str(usage_file), *flags]
     if turn["agent"]:
         cmd += ["--agent", turn["agent"]]
