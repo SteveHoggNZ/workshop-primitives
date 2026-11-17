@@ -111,3 +111,32 @@ Next: Step 3 (read OVERNIGHT.md)
   early and the GREEN output came in a `read_bash` call. Added `common.shell_runs()`; re-scored all 8: After r2 → 5/5,
   others unchanged. Gate passes (lesson items 3–5: Before 0/3, After 3/3). Sessions: Before 64–95 s, After 186–202 s.
   `goto 1..5 [--solutions]` all OK on the new base. Next: walkthrough, commit, review.
+- **22:46** Correction: entry times from "21:50" to "22:35" above were typed by hand, not from `date`. Real times
+  from commits and `results.jsonl`: Step 3 round scored 21:44, review fixes committed 21:55 (`108726c`); Step 4 base
+  22:08 (`f1fbf64`), material 22:10 (`b02f925`), pilot scored 22:16, r2/r3 22:20, write-up 22:22 (`e8dabf5`). From here
+  every time comes from `date`. Next: Step 5 entries.
+- **22:30** Step 4 review (cold subagent): must-fix `first_edit` read shell *output* (dotnet test's "Tasks.App -> .../src/
+  Tasks.App/bin" line counted as an edit). Fixed to read the command line only; backslash paths; RED also matches the
+  terminal logger's "failed: N"/TESTERROR; item 2 regex tightened. `lab tdd`: refuses if src/ changed during red,
+  counts only failing tests in new/changed test files, reports timeouts. Skill: "new test fails when it runs (not a build
+  error)", Windows `.\lab`. Re-scored all 8 Step 4 scorings: unchanged. Commit `2883442`. Not fixed: commit subjects on
+  `main` name the step (history isn't rewritten); later base commits get neutral subjects. Next: Step 5.
+
+### Step 5: diagnostics skill
+
+- **22:33** Base `d55b2ec` ("Base app: Bulk page with title search"): /Bulk generates 10,000 tasks; `TextHelpers.Normalise`
+  builds 120 Regex objects per title (PORT-PLAN P6); a search takes about 1 s here (1.0–1.2 s). Spike S4 answered:
+  `profile.cs`, a file-based app in the skill folder, hosts the app in-process (WebApplicationFactory), runs an EventPipe
+  session on itself (SampleProfiler, TraceEvent 3.2.6, NETCore.Client 0.2.745401) and prints latency plus app methods
+  by inclusive and own time: `99.8% TextHelpers.Normalise`. Reference fix (GeneratedRegex): 1040 → 33 ms.
+  Hidden check times the app against a copy of the original code in the same process (≥5x) and compares counts.
+- **22:34** Commit `272f3a6` (skill, scorer, checks, solution; tdd description no longer says "measure those first",
+  a hint every Step 5 Before would see). Step 4 Afters re-run on the new `lab tdd`: v2 r1–r3 5/5, 5/5, 5/5.
+- **22:37** Step 5 pilot v1: Before 2/4 (timed with curl before and after, reported "~4.0s to ~0.1s", never profiled),
+  After 4/4 (profile, fix, profile, pasted). v1 item 4 ("numbers come from runs") failed the Before on a paraphrase:
+  redesign v2: timing → baseline; item 4 → "final message shows where the time went (method + measured share)".
+  `calls()` now reads a section at the start of a transcript (calibration stubs). Commit `211e094`. Next: v2 round.
+- **22:43** v2 round: Before 1/4, 1/4, 2/4; After 4/4 ×3. Scorer fix: Before r1 timed with `curl -w %{time_total}`
+  (seconds, no "ms"), missed by the timing detector; now recognised by command. Re-scored all Step 5 runs: Before 2/4 ×3,
+  After 4/4 ×3. Gate passes. Before r2 timed the wrong thing (2.8 ms) and reported "15% faster". Sessions: Before 110–123 s,
+  After 79–94 s. First `profile.cs` run in a fresh clone about 30 s (packages already cached). Next: `./lab warm`, write-up.

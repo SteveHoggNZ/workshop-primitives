@@ -23,6 +23,8 @@ CHECKS = ["LabCheck05"]
 # A profiler shows where the time goes. Our script, or the usual .NET tools if an agent has them.
 PROFILER = re.compile(r"profile\.cs|dotnet-trace|dotnet-counters|EventPipe|dotnet-monitor|CPU samples", re.I)
 # A timing run: a profiler, or a command that prints a latency (a stopwatch script, curl -w, time).
+# Commands that time by themselves (found in v2 Before r1: curl -w %{time_total} prints seconds, no "ms").
+TIMING_CMD = re.compile(r"time_total|time_starttransfer|/usr/bin/time|(^|[;&|]\s*)time\s|Measure-Command|hyperfine|Stopwatch")
 TIMING_OUT = re.compile(r"latency ms|\bmedian\b[^\n]*\d|\b\d+(\.\d+)?\s?ms\b|Elapsed|elapsed", re.I)
 
 
@@ -31,7 +33,7 @@ def _timing_runs(ev):
     for pos, cmd, body in shell_runs(ev):
         if re.match(r"\s*(cd \S+ && )?dotnet (test|build)\b", cmd) and not PROFILER.search(cmd):
             continue  # test and build durations aren't a measurement of the page
-        if PROFILER.search(cmd) or (TIMING_OUT.search(body[len(cmd):]) and re.search(r"Stopwatch|curl|time |dotnet run|bench|\.cs", cmd)):
+        if PROFILER.search(cmd) or TIMING_CMD.search(cmd) or (TIMING_OUT.search(body[len(cmd):]) and re.search(r"Stopwatch|curl|dotnet run|bench|\.cs", cmd)):
             out.append((pos, cmd, body))
     return out
 
