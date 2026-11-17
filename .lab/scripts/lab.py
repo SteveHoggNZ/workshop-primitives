@@ -256,32 +256,36 @@ def score(run_id):
 
 
 def _usage(path):
-    """Flattens --usage-output-file JSON into the metrics fields; 'n/a' for anything missing."""
+    """The cost fields from a --usage-output-file JSON; 'n/a' when the file or a field is missing."""
     try:
         u = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError):
         return {"usage": "n/a"}
-    flat = {}
+    models = u.get("modelMetrics", {})
+    tok = lambda k: sum(m.get("usage", {}).get(k, 0) for m in models.values())
+    nano = u.get("totalNanoAiu")
+    return {"usage": {"ai_credits": round(nano / 1e9, 2) if isinstance(nano, (int, float)) else "n/a",
+                      "premium_requests": u.get("totalPremiumRequestCost", "n/a"),
+                      "requests": sum(m.get("requests", {}).get("count", 0) for m in models.values()),
+                      "tokens_in": tok("inputTokens"), "tokens_cached": tok("cacheReadTokens"),
+                      "tokens_written": tok("cacheWriteTokens"), "tokens_out": tok("outputTokens"),
+                      "tokens_reasoning": tok("reasoningTokens"),
+                      "api_s": round(u["totalApiDurationMs"] / 1000) if isinstance(u.get("totalApiDurationMs"), (int, float)) else "n/a"}}
 
-    def walk(prefix, v):
-        if isinstance(v, dict):
-            for k, x in v.items():
-                walk(f"{prefix}.{k}" if prefix else k, x)
-        elif isinstance(v, (int, float, str)) and not isinstance(v, bool):
-            flat[prefix] = v
-    walk("", u)
-    return {"usage": flat}
 
+def run_agent(run_id, timeout=1200, prompt=None):
+    """Runs every turn of the run's prompt with the Copilot CLI in its clone; writes RUN_ID.run.json.
 
-def run_agent(run_id, timeout=1200):
-    """Runs every turn of the run's prompt with the Copilot CLI in its clone; writes RUN_ID.run.json."""
+    prompt overrides the step's prompt (one turn, the phase's agent) for probe runs, which are never counted."""
     meta = json.loads((RUNS / f"{run_id}.json").read_text())
     mod = load_scorer(meta["step"])
     turns = prompt_for(run_id)
+    if prompt:
+        turns = [{"agent": turns[0]["agent"], "prompt": prompt}]
     home = HOMES / meta["model"]
     if not home.exists():
         raise SystemExit(f"No Copilot home {home}: sign in there first")
-    record = {"run_id": run_id, "turns": []}
+    record = {"run_id": run_id, "turns": [], **({"probe_prompt": prompt} if prompt else {})}
     for i, turn in enumerate(turns, 1):
         suffix = f"-t{i}" if len(turns) > 1 else ""
         transcript = RUNS / f"{run_id}{suffix}.md"
@@ -319,7 +323,8 @@ def metrics(run_id, design, counted, why, primitive):
     run = json.loads(runp.read_text()) if runp.exists() else {}
     scored = [json.loads(l) for l in RESULTS.read_text().splitlines() if l.strip() and json.loads(l)["id"] == run_id] if RESULTS.exists() else []
     last = scored[-1] if scored else {}
-    usage = [t.get("usage", "n/a") for t in run.get("turns", [])]
+    n = len(run.get("turns", []))
+    usage = [_usage(RUNS / f"{run_id}{'-t' + str(i) if n > 1 else ''}.usage.json")["usage"] for i in range(1, n + 1)]
     rec = {"kind": "run", "run_id": run_id, "step": meta["step"], "arm": meta["phase"], "model": meta["model"],
            "design": design, "prepared": meta["created"], "prepare_s": meta.get("prepare_s", "n/a"),
            "agent_started": run["turns"][0]["started"] if run.get("turns") else "n/a",
@@ -381,6 +386,7 @@ def main():
     p.add_argument("--model", default="gpt-5.6-luna"); p.add_argument("--tag", default="", help="one tag, or several comma-separated (prepared in parallel)")
     s = sub.add_parser("score"); s.add_argument("run_ids", nargs="+")
     rn = sub.add_parser("run"); rn.add_argument("run_ids", nargs="+"); rn.add_argument("--timeout", type=int, default=1200)
+    rn.add_argument("--prompt", default=None, help="probe: replace the step's prompt (never counted)")
     m = sub.add_parser("metrics"); m.add_argument("run_ids", nargs="+"); m.add_argument("--design", required=True)
     m.add_argument("--counted", default="yes"); m.add_argument("--why", default=""); m.add_argument("--primitive", default="")
     cb = sub.add_parser("calibrate"); cb.add_argument("steps", type=int, nargs="+")
@@ -393,7 +399,7 @@ def main():
         out = parallel(lambda t: prepare(a.step, a.phase, a.model, t), tags)
         print(json.dumps(out[0] if len(out) == 1 else [{k: o[k] for k in ("id", "clone", "prepare_s")} for o in out], indent=2))
     elif a.cmd == "run":
-        for r in parallel(lambda i: run_agent(i, a.timeout), a.run_ids):
+        for r in parallel(lambda i: run_agent(i, a.timeout, a.prompt), a.run_ids):
             print(f"{r['run_id']}: {r['agent_wall_s']} s, {r['tool_calls']} tool calls, rc {[t['rc'] for t in r['turns']]}")
     elif a.cmd == "score":
         for r in parallel(score, a.run_ids):
