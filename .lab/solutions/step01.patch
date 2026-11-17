@@ -1,0 +1,131 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 1512c42..1cddb7d 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,3 +1,5 @@
+ # Changelog
+ 
+ ## Unreleased
++
++- Added a Completed page listing completed tasks and the time the page was loaded.
+diff --git a/docs/architecture.md b/docs/architecture.md
+index ad64670..131349c 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -16,6 +16,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
+ |---|---|---|
+ | `/` | Index | Open tasks and counts |
+ | `/Recent` | Recent | The five newest tasks |
++| `/Completed` | Completed | Completed tasks, newest first, and when the page was loaded |
+ | `/Reports` | Reports | Weekly completion report |
+ 
+ ## API
+diff --git a/src/Tasks.App/Pages/Completed.cshtml b/src/Tasks.App/Pages/Completed.cshtml
+new file mode 100644
+index 0000000..8fbbf6e
+--- /dev/null
++++ b/src/Tasks.App/Pages/Completed.cshtml
+@@ -0,0 +1,22 @@
++@page
++@model CompletedModel
++@{
++    ViewData["Title"] = "Completed";
++}
++<section data-page="completed">
++    <h1>Completed</h1>
++    @if (Model.Tasks.Count == 0)
++    {
++        <partial name="_Empty" />
++    }
++    else
++    {
++        <ul>
++            @foreach (var task in Model.Tasks)
++            {
++                <li data-testid="task-row" data-task-id="@task.Id">@task.Title</li>
++            }
++        </ul>
++    }
++    <p>Page loaded at @Model.LoadedAt</p>
++</section>
+diff --git a/src/Tasks.App/Pages/Completed.cshtml.cs b/src/Tasks.App/Pages/Completed.cshtml.cs
+new file mode 100644
+index 0000000..57a6e4d
+--- /dev/null
++++ b/src/Tasks.App/Pages/Completed.cshtml.cs
+@@ -0,0 +1,20 @@
++using System.Globalization;
++using Microsoft.AspNetCore.Mvc.RazorPages;
++using Tasks.App.Models;
++using Tasks.App.Services;
++
++namespace Tasks.App.Pages;
++
++public class CompletedModel(TaskService tasks, TimeProvider clock, AppSettings settings) : PageModel
++{
++    public IReadOnlyList<TaskItem> Tasks { get; private set; } = [];
++
++    public string LoadedAt { get; private set; } = "";
++
++    public void OnGet()
++    {
++        Tasks = tasks.Completed();
++        LoadedAt = TimeZoneInfo.ConvertTime(clock.GetUtcNow(), settings.Zone)
++            .ToString("HH:mm zzz", CultureInfo.InvariantCulture);
++    }
++}
+diff --git a/src/Tasks.App/Pages/Shared/_Layout.cshtml b/src/Tasks.App/Pages/Shared/_Layout.cshtml
+index 2cd889e..a917252 100644
+--- a/src/Tasks.App/Pages/Shared/_Layout.cshtml
++++ b/src/Tasks.App/Pages/Shared/_Layout.cshtml
+@@ -10,6 +10,7 @@
+         <nav>
+             <a href="/">Tasks</a>
+             <a href="/Recent">Recent</a>
++            <a href="/Completed">Completed</a>
+         </nav>
+     </header>
+     <main>
+diff --git a/tests/Tasks.App.Tests/PageTests.cs b/tests/Tasks.App.Tests/PageTests.cs
+index 82eec1f..f901db7 100644
+--- a/tests/Tasks.App.Tests/PageTests.cs
++++ b/tests/Tasks.App.Tests/PageTests.cs
+@@ -1,3 +1,5 @@
++using System.Net;
++
+ namespace Tasks.App.Tests;
+ 
+ public class PageTests
+@@ -54,4 +56,32 @@ public class PageTests
+ 
+         Assert.Contains("Completed: Write report", html, StringComparison.Ordinal);
+     }
++
++    [Fact]
++    public async Task Completed_lists_done_tasks_with_the_load_time()
++    {
++        using var app = new TestApp();
++        var task = app.Tasks.Add("Write report");
++        app.Tasks.Add("Still open");
++        app.Tasks.Complete(task.Id);
++        using var client = app.CreateClient();
++
++        // Razor encodes "+" as "&#x2B;", so decode before looking for the offset.
++        var html = WebUtility.HtmlDecode(await client.GetStringAsync("/Completed"));
++
++        Assert.Contains($"data-task-id=\"{task.Id}\"", html, StringComparison.Ordinal);
++        Assert.DoesNotContain("Still open", html, StringComparison.Ordinal);
++        Assert.Contains("10:00 +13:00", html, StringComparison.Ordinal);
++    }
++
++    [Fact]
++    public async Task Completed_shows_the_empty_state()
++    {
++        using var app = new TestApp();
++        using var client = app.CreateClient();
++
++        var html = await client.GetStringAsync("/Completed");
++
++        Assert.Contains("Nothing here yet.", html, StringComparison.Ordinal);
++    }
+ }
