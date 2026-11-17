@@ -18,7 +18,7 @@ index ad64670..131349c 100644
  | `/Recent` | Recent | The five newest tasks |
 +| `/Completed` | Completed | Completed tasks, newest first, and when the page was loaded |
  | `/Reports` | Reports | Weekly completion report |
- | `/Agent` | Agent | The in-app agent: type commands to manage tasks ([commands](agent-commands.md)) |
+ | `/Agent` | Agent | The in-app agent: type commands to manage tasks |
  
 diff --git a/src/Tasks.App/Pages/Completed.cshtml b/src/Tasks.App/Pages/Completed.cshtml
 new file mode 100644

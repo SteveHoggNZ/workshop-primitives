@@ -75,7 +75,8 @@ public sealed class ScriptedAgent(TaskService tasks)
             if (intent.Confirm)
             {
                 _pending = (intent, args);
-                return $"This will run '{intent.Usage}'. Type yes to confirm.";
+                var what = intent.Preview is { } preview ? preview(tasks, args) : $"run '{intent.Usage}'";
+                return $"This will {what}. Type yes to confirm.";
             }
 
             return AgentTools.All[intent.Tool](tasks, args);

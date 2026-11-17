@@ -17,7 +17,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
 | `/` | Index | Open tasks and counts |
 | `/Recent` | Recent | The five newest tasks |
 | `/Reports` | Reports | Weekly completion report |
-| `/Agent` | Agent | The in-app agent: type commands to manage tasks ([commands](agent-commands.md)) |
+| `/Agent` | Agent | The in-app agent: type commands to manage tasks |
 
 ## API
 

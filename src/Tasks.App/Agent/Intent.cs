@@ -9,4 +9,12 @@ namespace Tasks.App.Agent;
 /// <param name="Usage">How the command is written in help, for example <c>done &lt;id&gt;</c>.</param>
 /// <param name="Example">An example for help.</param>
 /// <param name="Confirm">Ask "Type yes to confirm" before calling the tool.</param>
-public sealed record Intent(string Name, Regex Pattern, string Tool, string Usage, string Example, bool Confirm = false);
+/// <param name="Preview">Optional text for the confirm prompt ("This will ..."). Defaults to "run '&lt;usage&gt;'".</param>
+public sealed record Intent(
+    string Name,
+    Regex Pattern,
+    string Tool,
+    string Usage,
+    string Example,
+    bool Confirm = false,
+    AgentTool? Preview = null);
