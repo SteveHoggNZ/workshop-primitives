@@ -273,7 +273,7 @@ def _usage(path):
                       "api_s": round(u["totalApiDurationMs"] / 1000) if isinstance(u.get("totalApiDurationMs"), (int, float)) else "n/a"}}
 
 
-def run_agent(run_id, timeout=1200, prompt=None):
+def run_agent(run_id, timeout=1200, prompt=None, flags=None):
     """Runs every turn of the run's prompt with the Copilot CLI in its clone; writes RUN_ID.run.json.
 
     prompt overrides the step's prompt (one turn, the phase's agent) for probe runs, which are never counted."""
@@ -285,7 +285,7 @@ def run_agent(run_id, timeout=1200, prompt=None):
     home = HOMES / meta["model"]
     if not home.exists():
         raise SystemExit(f"No Copilot home {home}: sign in there first")
-    record = {"run_id": run_id, "turns": [], **({"probe_prompt": prompt} if prompt else {})}
+    record = {"run_id": run_id, "turns": [], **({"probe_prompt": prompt} if prompt else {}), **({"probe_flags": flags} if flags else {})}
     for i, turn in enumerate(turns, 1):
         suffix = f"-t{i}" if len(turns) > 1 else ""
         transcript = RUNS / f"{run_id}{suffix}.md"
@@ -294,6 +294,8 @@ def run_agent(run_id, timeout=1200, prompt=None):
                "--no-ask-user", "--share", str(transcript), "--usage-output-file", str(usage_file)]
         if turn["agent"]:
             cmd += ["--agent", turn["agent"]]
+        if flags:
+            cmd += flags  # probe runs only (e.g. --deny-tool); never counted
         if i > 1 and getattr(mod, "CONTINUE", False):
             cmd += ["--continue"]
         started = dt.datetime.now().isoformat(timespec="seconds")
@@ -387,6 +389,7 @@ def main():
     s = sub.add_parser("score"); s.add_argument("run_ids", nargs="+")
     rn = sub.add_parser("run"); rn.add_argument("run_ids", nargs="+"); rn.add_argument("--timeout", type=int, default=1200)
     rn.add_argument("--prompt", default=None, help="probe: replace the step's prompt (never counted)")
+    rn.add_argument("--flags", default=None, help="probe: extra copilot arguments, one string, split on spaces (never counted)")
     m = sub.add_parser("metrics"); m.add_argument("run_ids", nargs="+"); m.add_argument("--design", required=True)
     m.add_argument("--counted", default="yes"); m.add_argument("--why", default=""); m.add_argument("--primitive", default="")
     cb = sub.add_parser("calibrate"); cb.add_argument("steps", type=int, nargs="+")
@@ -399,7 +402,7 @@ def main():
         out = parallel(lambda t: prepare(a.step, a.phase, a.model, t), tags)
         print(json.dumps(out[0] if len(out) == 1 else [{k: o[k] for k in ("id", "clone", "prepare_s")} for o in out], indent=2))
     elif a.cmd == "run":
-        for r in parallel(lambda i: run_agent(i, a.timeout, a.prompt), a.run_ids):
+        for r in parallel(lambda i: run_agent(i, a.timeout, a.prompt, a.flags.split() if a.flags else None), a.run_ids):
             print(f"{r['run_id']}: {r['agent_wall_s']} s, {r['tool_calls']} tool calls, rc {[t['rc'] for t in r['turns']]}")
     elif a.cmd == "score":
         for r in parallel(score, a.run_ids):
