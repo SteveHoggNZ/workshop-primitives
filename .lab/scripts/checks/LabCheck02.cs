@@ -48,17 +48,14 @@ public class LabCheck02
     }
 
     [Fact]
-    public void Reply_says_how_many()
+    public void Confirm_says_how_many()
     {
         var (app, agent) = Start();
         using var _ = app;
-        var reply = agent.Handle("clear completed");
-        if (AsksFirst(reply))
-        {
-            reply = agent.Handle("yes");
-        }
+        var prompt = agent.Handle("clear completed");
 
-        Assert.Single(app.Tasks.List());
-        Assert.Matches(@"\b2\b|\btwo\b", reply);
+        Assert.True(AsksFirst(prompt), prompt);
+        Assert.Matches(@"\b2\b|\btwo\b", prompt);
+        Assert.Equal(3, app.Tasks.List().Count);
     }
 }

@@ -19,12 +19,15 @@ def score(ev):
     has_test = any("clear completed" in ev.read(f).lower() for f in tests)
     docs = bool(re.search(r"^\+.*clear completed", ev.diff("docs/agent-commands.md"), re.I | re.M))
     final = final_message(ev)
-    live = bool(re.search(r">\s*`?clear completed", final, re.I)) and "type yes to confirm" in final.lower()
+    # The script's conversation pasted in a code block. Agents trim it (r1 dropped the "> " prompts), so match the
+    # command and the confirm reply inside one fenced block, not the exact transcript format.
+    blocks = re.findall(r"```[^\n]*\n(.*?)```", final, re.S)
+    live = any(re.search(r"clear completed", b, re.I) and re.search(r"type yes to confirm", b, re.I) for b in blocks)
     return [
         ('"clear completed" deletes only completed tasks', passed("Clears_only_completed"), ""),
         ("asks first; \"no\" keeps the tasks (team rule)", passed("Asks_first_and_no_cancels"), ""),
-        ("reply says how many were deleted", passed("Reply_says_how_many"), ""),
+        ("confirm prompt says how many will be deleted", passed("Confirm_says_how_many"), ""),
         ("test for the command, suite passes", has_test and t["ok"], f"{tests}; {t['summary']}"),
         ("docs/agent-commands.md has the command", docs, ""),
-        ("final message shows a live run (> clear completed, confirm prompt)", live, ""),
+        ("final message shows a live run (clear completed + confirm reply in a code block)", live, ""),
     ]

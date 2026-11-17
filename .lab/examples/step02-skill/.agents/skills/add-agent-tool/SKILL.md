@@ -23,6 +23,13 @@ A command is done only when all six steps are done. Do them in order.
 - Add a row to `AgentIntents.All`: name, pattern from `P(...)`, tool name, usage and example.
 - **Anything that deletes or changes more than one task sets `Confirm: true`.** `ScriptedAgent` then asks
   "Type yes to confirm" before it calls the tool. This is a team rule, not a suggestion.
+- **It also sets `Preview`, and the preview says how many:** "This will delete 2 completed tasks. Type yes to
+  confirm." The default prompt ("This will run 'clear completed'") doesn't tell users what they're agreeing to.
+  `Preview` takes the same arguments as a tool and returns the words after "This will":
+
+  ```csharp
+  Preview: (tasks, _) => $"delete {tasks.Completed().Count} completed tasks"
+  ```
 - `help` is built from `AgentIntents.All`, so it updates itself.
 
 ## 4. Test: `tests/Tasks.App.Tests/AgentTests.cs`

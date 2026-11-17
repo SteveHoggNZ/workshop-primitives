@@ -8,17 +8,22 @@ index 8a6fcdd..09d266a 100644
  | `delete <id>` | `delete_task` | yes | `delete seed3` |
 +| `clear completed` | `clear_completed` | yes | `clear completed` |
 diff --git a/src/Tasks.App/Agent/AgentIntents.cs b/src/Tasks.App/Agent/AgentIntents.cs
-index 04a0a1b..ab72c1e 100644
+index 04a0a1b..b451e2c 100644
 --- a/src/Tasks.App/Agent/AgentIntents.cs
 +++ b/src/Tasks.App/Agent/AgentIntents.cs
-@@ -11,6 +11,7 @@ public static class AgentIntents
+@@ -11,7 +11,12 @@ public static class AgentIntents
          new("list", P(@"^(?:list|show)(?: tasks)?$"), "list_tasks", "list", "list"),
          new("complete", P(@"^(?:done|complete) (?<id>\S+)$"), "complete_task", "done <id>", "done seed3"),
          new("delete", P(@"^delete (?<id>\S+)$"), "delete_task", "delete <id>", "delete seed3", Confirm: true),
-+        new("clear", P(@"^clear completed$"), "clear_completed", "clear completed", "clear completed", Confirm: true),
++        new("clear", P(@"^clear completed$"), "clear_completed", "clear completed", "clear completed", Confirm: true,
++            Preview: (tasks, _) => CountOf(tasks.Completed().Count, "delete", "completed task")),
      ];
  
++    private static string CountOf(int count, string verb, string noun) =>
++        count == 1 ? $"{verb} 1 {noun}" : $"{verb} {count} {noun}s";
++
      private static Regex P(string pattern) => new(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+ }
 diff --git a/src/Tasks.App/Agent/AgentTools.cs b/src/Tasks.App/Agent/AgentTools.cs
 index b6c6f47..2ba7274 100644
 --- a/src/Tasks.App/Agent/AgentTools.cs
@@ -76,7 +81,7 @@ index becc58a..c03499d 100644
  
      public IReadOnlyList<TaskItem> Open() => [.. store.All().Where(t => !t.Done).OrderBy(t => t.CreatedAt)];
 diff --git a/tests/Tasks.App.Tests/AgentTests.cs b/tests/Tasks.App.Tests/AgentTests.cs
-index 35290be..1d79c80 100644
+index 35290be..804438e 100644
 --- a/tests/Tasks.App.Tests/AgentTests.cs
 +++ b/tests/Tasks.App.Tests/AgentTests.cs
 @@ -50,6 +50,33 @@ public class AgentTests
@@ -92,7 +97,7 @@ index 35290be..1d79c80 100644
 +        app.Tasks.Complete(done.Id);
 +        var agent = Agent(app);
 +
-+        Assert.Contains("Type yes to confirm", agent.Handle("clear completed"), StringComparison.Ordinal);
++        Assert.Equal("This will delete 1 completed task. Type yes to confirm.", agent.Handle("clear completed"));
 +        Assert.Equal("Deleted 1 completed task.", agent.Handle("yes"));
 +        Assert.Equal(new[] { "Open" }, app.Tasks.List().Select(t => t.Title));
 +    }
