@@ -7,4 +7,5 @@ TestResults/
 .lab/runs/
 .lab/homes/
 .lab/.lint/
+.lab/.warm/
 .DS_Store

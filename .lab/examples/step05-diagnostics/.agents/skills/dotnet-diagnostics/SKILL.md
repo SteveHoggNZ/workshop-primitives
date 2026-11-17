@@ -16,12 +16,13 @@ times the page `--repeat` times, and samples where the CPU time goes:
 
 ```bash
 dotnet run --no-cache .agents/skills/dotnet-diagnostics/scripts/profile.cs -- \
-    --setup "POST /Bulk?handler=Generate" --path "/Bulk?q=sample task 12" --repeat 5
+    --setup "POST /Bulk?handler=Generate" --path "/Bulk?q=sample task 12" --repeat 3
 ```
 
 - `--setup` runs once first (repeat it for several); `--path` is the page you time. A request without
   `POST ` is a GET.
-- The first run builds the script and restores two diagnostics packages: about 30 s. Later runs: about 10 s.
+- It takes 10–20 s while the page is slow (it rebuilds, then times the slow page four times), under 10 s once
+  it's fast. Let it finish.
 - Read `latency ms: median ..., max ...`, then **app methods by own time**: the top row is where the
   time goes. Open that method before you change anything.
 

@@ -8,6 +8,7 @@ try
     return command switch
     {
         "doctor" => Doctor.Run(),
+        "warm" => Warm.Run(),
         "lint" => Lint.Run(rest),
         "list" or "status" => StepCommands.List(),
         "apply" => StepCommands.Apply(rest),
@@ -30,6 +31,7 @@ static int Help()
         Usage: ./lab <command>          (Windows: lab <command>)
 
           doctor                 Check this machine can run the lab, and which steps it can run.
+          warm                   One-off setup after doctor: first build, and the skill scripts' packages.
           lint [--json]          Build the app and count lint findings against docs/lint-baseline.md.
           lint --check           Same, but exit 1 if the count is above the baseline.
 
