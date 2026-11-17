@@ -178,3 +178,22 @@ Next: Step 3 (read OVERNIGHT.md)
 - **23:08** Pilot Before 2/4 (quoted `Total: 6 (baseline 5)`, stopped), After 4/4 (blocked once, fixed Recent to 0).
 - **23:10** r2, r3: Before 2/4, 2/4; After 4/4, 4/4 (each blocked once; gate took 5 s). Gate passes. Before r2 loaded the
   tdd skill (allowed: "add behaviour"). Next: write-up, review, Step 8.
+- **23:20** Step 7 review: must-fix, items 2 and 3 were one lesson counted twice (an honest agent quotes what lint printed);
+  "one at 0" wrong (all three at 0). v2 (`./lab scenario 7`: baseline 5 + a half-finished ActivityFeed change that
+  breaks one test; items: works, lint, suite incl. the red test, integrity): Before 2/4, 3/4, 3/4; After 4/4 ×3. Two
+  Befores fixed the red test themselves: only lint separates. v3 (format check in the gate, one badly formatted old
+  file in the scenario; the red test a baseline) running. Gate: timeouts 150 s, fast path watches the bar files;
+  LabCheck07 creates tasks in the opposite order to completion. Next: v3 results.
+
+### Step 8: spec-driven development
+
+- **23:15** Base `22a8232` ("Base app: task API (create, update) and a backlog"): POST/PATCH /api/tasks, docs/backlog.md B1.
+  No GET /api/tasks list (would fix Step 3's drift item 4). Answer key ported with two changes: `dueDate` (camelCase,
+  like the API) and ties by creation (ids are random). Hidden tests LabCheck08 (8): base 0/8, reference 8/8. Spec Kit
+  1.2.5 (`specify init --integration copilot --integration-options="--skills" --script sh`), PowerShell variant as
+  `--tools powershell`; constitution 1.1.0 for .NET (Article VI: never invent a public contract). Commit `f834e46`.
+- **23:39** Runs (Luna, 3 per arm): one prompt 1, 0, 1; ask first 8, 7, 8 (I answered only what was asked, from the key);
+  Spec Kit 6, 8, 7 (specify → 3 [NEEDS CLARIFICATION] each; clarify asked 3 questions each, one at a time; plan; tasks
+  26–32; implement 210–378 s). Spec Kit misses: specs said "a clear validation response"/"client error" without a
+  marker → 400, not 422 (r1, r3); r1 also sort ties. Credits: one prompt ~3.4, ask ~5, Spec Kit 15–21. Harness: `run
+  --append` for later turns; `--resume` can't take `--trust-folder` (failed turns, no session) → `--add-dir`. Next: review.
