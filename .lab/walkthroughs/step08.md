@@ -15,7 +15,9 @@ doesn't say.
 
 You'll need a partner (or the facilitator) to play the **stakeholder**, with the answer key
 ([.lab/facilitator/step08/answer-key.md](../facilitator/step08/answer-key.md)). The stakeholder
-answers **only what's asked**, in the key's words.
+answers **only what's asked**, in the key's words: for each question, the rows that answer that
+question, and "No preference" for anything the key doesn't cover. Answering more than was asked
+changes the result (we did it by mistake in our first round; see "How we kept it fair").
 
 1. **One prompt.** New session:
 
@@ -78,41 +80,46 @@ ties how? "Overdue": before today where? Whoever writes the code makes those dec
 agent makes them silently.
 
 What happened when we ran it (Copilot CLI 1.0.112, `gpt-5.6-luna` in every arm, 3 runs each,
-Spec Kit 1.2.5, constitution 1.1.0):
+Spec Kit 1.2.5, constitution 1.1.0, the stakeholder answering strictly from the key):
 
-| Arm | Hidden tests (of 8) | Sessions | Agent time | AI credits |
+| Arm | Hidden tests (of 8) | Sessions (turns) | Agent time | AI credits |
 |---|---|---|---|---|
-| One prompt | **1, 0, 1** | 1 | about 3 min | about 3.4 |
-| Ask me first | **8, 7, 8** | 2 (questions, then answers) | 3–6 min | 4–6.5 |
-| Spec Kit + constitution | **6, 8, 7** | 9 (specify, clarify × 4, plan, tasks, implement) | 10–12 min | 15–21 |
+| One prompt | **0, 0, 1** | 1 (1) | 3.4–4.5 min | about 4.7 |
+| Ask me first | **7, 7, 7** | 1 (2: questions, then answers) | 3.5–4.1 min | about 4.7 |
+| Spec Kit + constitution | **7, 7, 7** | 5 (8: specify, clarify + 3 answers, plan, tasks, implement) | 9.3–11.2 min | about 18.5 |
 
-- **One prompt guesses.** Every one-shot run built a working feature with tests that pass, and
-  failed almost every acceptance test: `low/medium/high`, its own sort, its own validation.
-- **Asking gets most of the gain, cheaply.** Six questions each; the runs that asked about the page
-  got 8/8. The one that didn't ask how the list page should show tasks got 7.
-- **Spec Kit does as well, at five times the cost.** For one small item, that's poor value. Its
-  value is in the artefacts: `spec.md`, `plan.md`, `tasks.md` on disk, so each phase starts fresh
-  and a reviewer can read the decisions.
-- **Its misses are the spec's silences.** Both Spec Kit misses on item 7 had a spec that said only
-  that the API rejects bad input with "a clear validation response" (r1) or "a clear client error" (r3).
-  That's a contract decision the spec didn't mark, so `/speckit-clarify` never asked, and the code
-  returned 400, not 422. The run whose first clarify question happened to include validation errors
-  (r2) got the 422, and 8/8. Reading `spec.md`
-  yourself before `/speckit-plan` is where you'd catch it: that review is the point of the phase.
+- **One prompt guesses.** Every one-shot run built a working feature with passing tests of its own,
+  and failed almost every acceptance test: its own priority values, sort, filters and validation.
+- **Asking first closes almost all of it, at no extra cost.** Six or seven questions each. Each run
+  missed exactly one test, and in every case it was the one decision it hadn't asked about (what
+  "overdue" means, twice; how the list page shows a task, once).
+- **Spec Kit scores the same, at about four times the cost and two and a half times the time.** Its
+  misses are the same kind: one decision per run that neither the spec marked nor clarify asked
+  about (what "overdue" means; the 422; the page). For one small item that's poor value. Its value is
+  in the artefacts: `spec.md`, `plan.md` and `tasks.md` on disk, so each phase starts fresh and a
+  reviewer can read every decision in one place.
+- **Read the spec before planning.** Every miss in both clarifying arms was a question nobody asked.
+  In Spec Kit you can see the gap: the spec's "clear validation message" or "stands out" is a decision
+  dressed as a requirement. Reading `spec.md` after clarify, and asking about anything vague, is where
+  you'd catch it. That review is the point of the phase.
+
+**How we kept it fair.** The first round of this step had a stakeholder (Claude, playing the role)
+who answered more than was asked: it volunteered the 422 and "done tasks are never overdue", and in
+one run said "API only" when the key says the page shows priority. That inflated the ask arm (8, 7, 8)
+and the independent review caught it. Also, the docs said `GET /api/tasks` is newest first and the key
+said oldest first. The key now agrees with the docs and says how to answer (the rows that answer *that*
+question, verbatim; otherwise "No preference"), and all nine runs were done again. First-round runs
+are listed as not counted in `NOTES.md`.
 
 ## What the constitution did
 
 [Article VI](../examples/step08-spec-kit/.specify/memory/constitution.md#L28-L33) says: never invent
 a public contract; mark field names, accepted values, sort and filter semantics, validation
 responses and derived states like "overdue" as `[NEEDS CLARIFICATION]`. Every Spec Kit spec came
-out with exactly three markers (API contract, sort and filter semantics, overdue), and clarify asked
-about each. The Python version of this lab found that without that article, the spec invented the
-API and clarify never asked. It also shows Article VI's limit: "validation responses" is in the
-list, and two specs still wrote "a clear validation response" without a marker. A rule in a document
-is read by a model, not enforced.
-
-Other articles paid off quietly: "today ... uses the user's time zone" (II) and the earlier steps'
-`AGENTS.md` and gate all apply in every phase.
+out with three markers, and clarify asked three questions, so the API contract, the priority values
+and the sort and filter rules were asked about every time. It also shows Article VI's limit: the
+specs still wrote "a clear validation message" without a marker, and in one run "overdue" was only
+asked about as a filter. A rule in a document is read by a model, not enforced.
 
 ## Choosing the ceremony
 
@@ -132,12 +139,13 @@ loop, and turned into tests.
 - `specs/001-*/spec.md` after specify: user stories, functional requirements, and the
   `[NEEDS CLARIFICATION]` markers. After clarify: a `## Clarifications` section with the answers.
 - `plan.md`, `research.md`, `data-model.md`, `contracts/`: how, in this codebase.
-- `tasks.md`: 25–30 small tasks, tests first (the constitution's Article III).
+- `tasks.md`: 25–32 small tasks, tests first (the constitution's Article III).
 
 ## Running it on Windows
 
 `./lab apply 8 --tools powershell` installs the same skills pointing at `.specify/scripts/powershell/`.
-The PowerShell variant is generated by the same Spec Kit version but we haven't run it.
+It also sets `"script": "ps"` in `.specify/integration.json`. The bash scripts are still installed
+alongside, harmlessly. The PowerShell variant is generated by the same Spec Kit version but we haven't run it.
 
 ## Scoring: where to look
 
@@ -157,12 +165,13 @@ The reference solution is [.lab/solutions/step08.patch](../solutions/step08.patc
 ## For us
 
 - [ ] Before/After by hand in VS Code (Steve), plus the VS Code check below
-- [x] **Run with the harness** (Copilot CLI 1.0.112, 17 Nov 2026), `gpt-5.6-luna`, 3 runs per arm. One prompt
-  **1, 0, 1**; ask first **8, 7, 8**; Spec Kit **6, 8, 7**. The stakeholder (Claude, from the answer key,
-  answering only what was asked) is in the transcripts. Details in `.lab/validation/NOTES.md`.
+- [x] **Run with the harness** (Copilot CLI 1.0.112, 18 Nov 2026), `gpt-5.6-luna`, 3 runs per arm (design v2).
+  One prompt **0, 0, 1**; ask first **7, 7, 7**; Spec Kit **7, 7, 7**. The stakeholder (Claude, answering
+  strictly from the key) is in the transcripts. Design v1's stakeholder over-answered (see "How we kept it
+  fair"). Details in `.lab/validation/NOTES.md`.
   Scorer `.lab/scripts/steps/step08.py`, hidden tests `.lab/scripts/checks/LabCheck08.cs`.
 - [x] Scorer calibrated: reference solution 8/8, untouched clone 0/8
-- [ ] Spec Kit implement took 3.5–6.3 min (over the 4-minute session budget in 2 of 3 runs)
+- [ ] Spec Kit implement took 3.5–4.9 min (over the 4-minute session budget in 2 of 3 runs); the whole arm 9–11 min
 - [ ] PowerShell variant (`--tools powershell`) not run
 
 ### VS Code check for Steve (about 3 minutes)

@@ -31,7 +31,7 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 |---|---|---|---|
 | 1 | 1/6, 1/6 | 6/6, 6/6 | Validated. No flips |
 | 2 | 3/6, 3/6 (`v2r1`, `v2r2`) | 6/6, 6/6 (`v3r1`, `v3r2`) | Validated. Befores pass 1, 2, 4. Afters loaded the skill and ran `try.cs` |
-| 8 | one prompt 1/8, 0/8, 1/8; ask first 8/8, 7/8, 8/8 | Spec Kit 6/8, 8/8, 7/8 (`v1-r1..r3`, Luna) | Three arms. Spec Kit beats one prompt every run; ask-first matches it at about a quarter of the cost. Stakeholder answers from the answer key, only what was asked (Claude played it) |
+| 8 | one prompt 0/8, 0/8, 1/8; ask first 7/8, 7/8, 7/8 | Spec Kit 7/8, 7/8, 7/8 (`v2-r1..r3`, Luna) | Three arms, design v2 (strict stakeholder). Both clarifying arms beat one prompt every run; ask-first matches Spec Kit at about a quarter of the credits. Every miss was a decision nobody asked about |
 | 7 | 3/5, 3/5, 3/5 (`v3-r1..r3`, Luna) | 5/5, 5/5, 5/5 (`v3-r1..r3`, Luna) | Validated (design v3). Befores fixed the red test but left lint over the bar and the format check failing. Each After blocked once by the gate, then met the bar |
 | 6 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v3-r1..r3`, Luna; v2 also 4/4 ×3) | Validated. Befores read the "don't edit without asking" line and edited. Afters denied by the hook, handed over the diff. Guard v2 (writes only) |
 | 5 | 2/4, 2/4, 2/4 (`v2-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v4-r1..r3`, Luna; v3 also 4/4 ×3) | Validated (checklist v2, skill v4). Befores fixed it from reading the code and timed with curl; never profiled. Afters profiled, fixed, profiled, pasted |
@@ -72,6 +72,8 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s07-*-v1-r1..r3` (Before 2/4 ×3, After 4/4 ×3) | Design v1 superseded after the review: items 2 (lint ≤ baseline) and 3 (final `Total:` ≤ its baseline) were one lesson counted twice |
 | `s07-*-v2-r1..r3` (Before 2/4, 3/4, 3/4; After 4/4 ×3) | Design v2 (scenario: baseline 5 + a red test): 2 of 3 Befores fixed the red test themselves, so only lint separated. v2-r1 was later re-scored once by mistake with the v3 scorer (3/5): ignore that row |
 | `s07-*-calib-*-1117233316`, `-1117233805` | Calibration v2 (4/4, 1/4) and v3 (5/5, 1/5) |
+| `s08-{before,ask,after}-…-v1-r1..r3` (1/0/1, 8/7/8, 6/8/7) | Design v1, superseded after the review: the stakeholder (me) volunteered answers not asked (the 422, "null clears", "done never overdue", rules not in the key) and told ask r2 "API only" against the key's page row; the docs' list order contradicted the key |
+| `s08-*-calib-*-1117234652` | Calibration v2: 8/8, 0/8 |
 | `s08-*-calib-*-1117231824` | Step 8 calibration: reference 8/8, untouched 0/8 |
 | `s08-ask-…-v1-r1..r3` turn 2, `s08-after-…-v1-r1..r3` turn 3 | Failed turns, not sessions: `--resume` can't be combined with `--trust-folder` (Copilot exited 0 with a usage error, no session). Re-sent as the next turn; the harness now uses `--add-dir` for resumed turns. The gaps are in the transcripts' numbering only |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |

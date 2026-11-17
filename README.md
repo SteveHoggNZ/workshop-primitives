@@ -38,6 +38,7 @@ dotnet run --project src/Tasks.App    # then open the URL it prints
 | 5 | A skill with a script, for a cheaper model |
 | 6 | Permissions, then hooks |
 | 7 | A hook at the end of the session |
+| 8 | Clarify before you build: three ways |
 
 Each step: run the Before prompt in a new agent session, `./lab reset`, `./lab apply N`, read what
 was installed, then run the same prompt in another new session and compare.
