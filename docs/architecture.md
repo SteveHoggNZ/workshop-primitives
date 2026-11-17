@@ -26,6 +26,8 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
 | Endpoint | What it returns |
 |---|---|
 | `GET /api/tasks` | All tasks, newest first |
+| `POST /api/tasks` | Creates a task from `{ "title": ... }`; 201 with the task |
+| `PATCH /api/tasks/{id}` | Renames a task or marks it done (`{ "title": ..., "done": true }`) |
 
 ## Services
 

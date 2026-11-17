@@ -35,7 +35,7 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 app.MapRazorPages();
-app.MapGet("/api/tasks/recent", (ITaskQueries queries) => queries.Recent());
+TaskApi.Map(app);
 app.Run();
 
 /// <summary>Exposed so tests can start the app in-process.</summary>
