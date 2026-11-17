@@ -10,8 +10,8 @@ public class LabCheck07
     {
         using var app = new TestApp();
         var open = app.Tasks.Add("Still open");
+        var second = app.Tasks.Add("Finished second"); // created first, completed second: oldest by completion, not creation
         var first = app.Tasks.Add("Finished first");
-        var second = app.Tasks.Add("Finished second");
         app.Tasks.Complete(first.Id);
         app.Clock.Advance(TimeSpan.FromMinutes(5));
         app.Tasks.Complete(second.Id);
