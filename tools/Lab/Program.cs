@@ -13,6 +13,7 @@ try
         "apply" => StepCommands.Apply(rest),
         "reset" => StepCommands.Reset(rest),
         "goto" => StepCommands.Goto(rest),
+        "tdd" => Tdd.Run(rest),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command),
     };

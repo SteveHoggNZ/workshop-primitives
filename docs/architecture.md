@@ -18,6 +18,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
 | `/Recent` | Recent | The five newest tasks |
 | `/Reports` | Reports | Weekly completion report |
 | `/Agent` | Agent | The in-app agent: type commands to manage tasks |
+| `/Dashboard` | Dashboard | This week's start date and the share of tasks done |
 
 ## API
 
@@ -32,3 +33,4 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
 | `TaskService` | `Services/TaskService.cs` | The only data access |
 | `TaskCommands` | `Services/TaskCommands.cs` | Parses quick-add commands |
 | `ScriptedAgent` | `Agent/ScriptedAgent.cs` | The in-app agent: matches commands in `AgentIntents` to tools in `AgentTools` |
+| `TaskStats` | `Services/TaskStats.cs` | Numbers for the dashboard |

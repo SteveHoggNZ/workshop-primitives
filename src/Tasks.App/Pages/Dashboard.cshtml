@@ -1,0 +1,8 @@
+@page
+@model DashboardModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<h1>Dashboard</h1>
+<p>Week starting: @Model.WeekStarting</p>
+<p>Completed: @Model.Percent% (@Model.Done of @Model.Total)</p>
