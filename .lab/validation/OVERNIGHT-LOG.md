@@ -201,3 +201,15 @@ Next: Step 3 (read OVERNIGHT.md)
   --verify-no-changes`; items: works, lint, format (lessons), suite incl. red test, integrity): Before 3/5 ×3 (fixed the red
   test, left lint and format), After 5/5 ×3 (blocked once each, gate 3–6 s). Gate passes. Calibration 5/5, 1/5. Next: commit,
   Step 8 review, regression pass.
+- **23:57** Step 8 review (cold subagent), must-fix: **I wasn't a fair stakeholder** in v1. I volunteered the 422, "null clears",
+  "done never overdue" and rules not in the key, and told ask r2 "API only" against the key's page row. Also the docs say
+  `GET /api/tasks` is newest first and the key said oldest first (one-shot runs penalised for following the docs). And
+  git history in clones exposed the answer key (`git show <commit>:.lab/...`; no run used it). Design v2 (`73c82e1`): key
+  agrees with the docs (newest first) and has an answering rule (rows that answer *that* question, verbatim; otherwise
+  "No preference"); LabCheck08 row check finds the whole <li>; clones get one orphan base commit; empty turns refused;
+  reset removes .specify/feature.json; PowerShell adapter's integration.json. v1 runs not counted. Re-run all arms.
+- **23:57** v2 so far: one prompt 0, 0, 1; ask first 7, 7, 7 (each missed exactly what it didn't ask: overdue ×2, the page ×1).
+  Spec Kit v2 implementing. Regression pass on `73c82e1`: goto 1–9 ± solutions all OK, tests pass; goto 9 --solutions
+  lint 5 (baseline 6); calibration s01 6/0, s02 6/0, s03 4/1, s04 5/0, s05 4/0, s06 4/1, s07 5/1, s08 8/0. Also fixed Step 0
+  drift from tonight's base changes: Program.cs call site back at L37, TaskService.Recent at L35 (walkthrough links had
+  been 2 lines stale since Step 2; corrected). Next: Spec Kit v2 results, rehearsal, report.
