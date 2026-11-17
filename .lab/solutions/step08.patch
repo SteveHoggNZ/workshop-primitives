@@ -1,0 +1,226 @@
+diff --git a/src/Tasks.App/Models/TaskItem.cs b/src/Tasks.App/Models/TaskItem.cs
+index 5283fba..6d47ace 100644
+--- a/src/Tasks.App/Models/TaskItem.cs
++++ b/src/Tasks.App/Models/TaskItem.cs
+@@ -1,7 +1,12 @@
+ namespace Tasks.App.Models;
+ 
+ /// <summary>A task. Times are stored in UTC; pages convert them for display.</summary>
+-public sealed record TaskItem(string Id, string Title, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt = null)
++public sealed record TaskItem(string Id, string Title, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt = null, string Priority = "normal", DateOnly? DueDate = null)
+ {
++    public static readonly string[] Priorities = ["urgent", "high", "normal", "low"];
++
+     public bool Done => CompletedAt is not null;
++
++    /// <summary>Not done, and due before today (today in the user's zone).</summary>
++    public bool IsOverdue(DateOnly today) => !Done && DueDate is { } due && due < today;
+ }
+diff --git a/src/Tasks.App/Pages/Index.cshtml b/src/Tasks.App/Pages/Index.cshtml
+index 03a243a..23603c2 100644
+--- a/src/Tasks.App/Pages/Index.cshtml
++++ b/src/Tasks.App/Pages/Index.cshtml
+@@ -8,7 +8,7 @@
+ <ul>
+     @foreach (var task in Model.Open)
+     {
+-        <li>@task.Title</li>
++        <li>@task.Title <span>@task.Priority</span>@if (task.IsOverdue(Model.Today)) { <strong> Overdue</strong> }</li>
+     }
+ </ul>
+ <h2>Latest activity</h2>
+diff --git a/src/Tasks.App/Pages/Index.cshtml.cs b/src/Tasks.App/Pages/Index.cshtml.cs
+index a42ee6e..41ec4df 100644
+--- a/src/Tasks.App/Pages/Index.cshtml.cs
++++ b/src/Tasks.App/Pages/Index.cshtml.cs
+@@ -4,7 +4,7 @@ using Tasks.App.Services;
+ 
+ namespace Tasks.App.Pages;
+ 
+-public class IndexModel(TaskService tasks, ActivityFeed feed) : PageModel
++public class IndexModel(TaskService tasks, ActivityFeed feed, AppSettings settings) : PageModel
+ {
+     public IReadOnlyList<TaskItem> Open { get; private set; } = [];
+ 
+@@ -12,10 +12,13 @@ public class IndexModel(TaskService tasks, ActivityFeed feed) : PageModel
+ 
+     public IReadOnlyList<string> Activity { get; private set; } = [];
+ 
++    public DateOnly Today { get; private set; }
++
+     public void OnGet()
+     {
+         Open = tasks.Open();
+         DoneCount = tasks.Completed().Count;
+         Activity = feed.Recent(3);
++        Today = tasks.Today(settings.Zone);
+     }
+ }
+diff --git a/src/Tasks.App/Services/TaskService.cs b/src/Tasks.App/Services/TaskService.cs
+index 8d99ba0..57af02b 100644
+--- a/src/Tasks.App/Services/TaskService.cs
++++ b/src/Tasks.App/Services/TaskService.cs
+@@ -6,9 +6,9 @@ namespace Tasks.App.Services;
+ /// <summary>The only way the rest of the app reads or changes tasks.</summary>
+ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQueries
+ {
+-    public TaskItem Add(string title)
++    public TaskItem Add(string title, string priority = "normal", DateOnly? dueDate = null)
+     {
+-        var task = new TaskItem(Guid.NewGuid().ToString("N")[..8], title.Trim(), clock.GetUtcNow());
++        var task = new TaskItem(Guid.NewGuid().ToString("N")[..8], title.Trim(), clock.GetUtcNow(), null, priority, dueDate);
+         store.Add(task);
+         return task;
+     }
+@@ -39,6 +39,11 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
+         return renamed;
+     }
+ 
++    public TaskItem? Update(TaskItem changed) => store.Replace(changed) ? changed : null;
++
++    /// <summary>Today's date for a user in <paramref name="zone"/>.</summary>
++    public DateOnly Today(TimeZoneInfo zone) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(), zone).DateTime);
++
+     public bool Delete(string id) => store.Remove(id);
+ 
+     public IReadOnlyList<TaskItem> List() => store.All();
+diff --git a/src/Tasks.App/TaskApi.cs b/src/Tasks.App/TaskApi.cs
+index a552fd0..8e46a7c 100644
+--- a/src/Tasks.App/TaskApi.cs
++++ b/src/Tasks.App/TaskApi.cs
+@@ -1,3 +1,5 @@
++using System.Globalization;
++using System.Text.Json;
+ using Tasks.App.Models;
+ using Tasks.App.Services;
+ 
+@@ -6,26 +8,73 @@ namespace Tasks.App;
+ /// <summary>The JSON API for tasks, under /api/tasks.</summary>
+ public static class TaskApi
+ {
+-    public sealed record NewTask(string? Title);
++    public sealed record TaskDto(string Id, string Title, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, bool Done, string Priority, DateOnly? DueDate, bool Overdue);
+ 
+-    public sealed record TaskChange(string? Title, bool? Done);
++    private static TaskDto Dto(TaskItem t, DateOnly today) => new(t.Id, t.Title, t.CreatedAt, t.CompletedAt, t.Done, t.Priority, t.DueDate, t.IsOverdue(today));
++
++    private static IResult Invalid(string field, string message) =>
++        Results.ValidationProblem(new Dictionary<string, string[]> { [field] = [message] }, statusCode: StatusCodes.Status422UnprocessableEntity);
+ 
+     public static void Map(WebApplication app)
+     {
+         app.MapGet("/api/tasks/recent", (ITaskQueries queries) => queries.Recent());
+ 
+-        app.MapPost("/api/tasks", (NewTask body, TaskService tasks) =>
++        app.MapGet("/api/tasks", (string? sort, string? priority, DateOnly? due_before, TaskService tasks, AppSettings settings) =>
++        {
++            var today = tasks.Today(settings.Zone);
++            IEnumerable<TaskItem> rows = tasks.List().OrderBy(t => t.CreatedAt);
++            if (priority is not null)
++            {
++                rows = rows.Where(t => t.Priority == priority);
++            }
++
++            if (due_before is { } before)
++            {
++                rows = rows.Where(t => t.DueDate is { } d && d <= before);
++            }
++
++            if (sort == "priority")
++            {
++                rows = rows.OrderBy(t => Array.IndexOf(TaskItem.Priorities, t.Priority)).ThenBy(t => t.DueDate is null).ThenBy(t => t.DueDate).ThenBy(t => t.CreatedAt);
++            }
++
++            return Results.Ok(rows.Select(t => Dto(t, today)));
++        });
++
++        app.MapPost("/api/tasks", (JsonElement body, TaskService tasks, AppSettings settings) =>
+         {
+-            if (string.IsNullOrWhiteSpace(body.Title))
++            var title = body.TryGetProperty("title", out var tt) && tt.ValueKind == JsonValueKind.String ? tt.GetString() : null;
++            if (string.IsNullOrWhiteSpace(title))
+             {
+                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["title"] = ["A task needs a title."] });
+             }
+ 
+-            var task = tasks.Add(body.Title);
+-            return Results.Created($"/api/tasks/{task.Id}", task);
++            var priority = "normal";
++            if (body.TryGetProperty("priority", out var p) && p.ValueKind == JsonValueKind.String)
++            {
++                priority = p.GetString()!;
++                if (!TaskItem.Priorities.Contains(priority))
++                {
++                    return Invalid("priority", "Use low, normal, high or urgent.");
++                }
++            }
++
++            DateOnly? due = null;
++            if (body.TryGetProperty("dueDate", out var d) && d.ValueKind == JsonValueKind.String)
++            {
++                if (!DateOnly.TryParseExact(d.GetString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
++                {
++                    return Invalid("dueDate", "Use YYYY-MM-DD.");
++                }
++
++                due = parsed;
++            }
++
++            var task = tasks.Add(title, priority, due);
++            return Results.Created($"/api/tasks/{task.Id}", Dto(task, tasks.Today(settings.Zone)));
+         });
+ 
+-        app.MapPatch("/api/tasks/{id}", (string id, TaskChange body, TaskService tasks) =>
++        app.MapPatch("/api/tasks/{id}", (string id, JsonElement body, TaskService tasks, AppSettings settings) =>
+         {
+             var task = tasks.List().FirstOrDefault(t => t.Id == id);
+             if (task is null)
+@@ -33,17 +82,44 @@ public static class TaskApi
+                 return Results.NotFound();
+             }
+ 
+-            if (body.Title is { } title && !string.IsNullOrWhiteSpace(title))
++            if (body.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(title.GetString()))
++            {
++                task = task with { Title = title.GetString()!.Trim() };
++            }
++
++            if (body.TryGetProperty("priority", out var p))
++            {
++                if (p.ValueKind != JsonValueKind.String || !TaskItem.Priorities.Contains(p.GetString()))
++                {
++                    return Invalid("priority", "Use low, normal, high or urgent.");
++                }
++
++                task = task with { Priority = p.GetString()! };
++            }
++
++            if (body.TryGetProperty("dueDate", out var d))
+             {
+-                task = tasks.Rename(id, title) ?? task;
++                if (d.ValueKind == JsonValueKind.Null)
++                {
++                    task = task with { DueDate = null };
++                }
++                else if (d.ValueKind == JsonValueKind.String && DateOnly.TryParseExact(d.GetString(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
++                {
++                    task = task with { DueDate = parsed };
++                }
++                else
++                {
++                    return Invalid("dueDate", "Use YYYY-MM-DD, or null to clear it.");
++                }
+             }
+ 
+-            if (body.Done == true)
++            tasks.Update(task);
++            if (body.TryGetProperty("done", out var done) && done.ValueKind == JsonValueKind.True)
+             {
+                 task = tasks.Complete(id) ?? task;
+             }
+ 
+-            return Results.Ok(task);
++            return Results.Ok(Dto(task, tasks.Today(settings.Zone)));
+         });
+     }
+ }

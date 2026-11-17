@@ -126,7 +126,8 @@ class Evidence:
         self.id = run_id
         self.dir = RUNS / run_id
         self.meta = json.loads((RUNS / f"{run_id}.json").read_text())
-        parts = sorted(RUNS.glob(f"{run_id}-t*.md")) or [RUNS / f"{run_id}.md"]
+        turn = lambda q: int(re.search(r"-t(\d+)\.md$", q.name).group(1))
+        parts = sorted(RUNS.glob(f"{run_id}-t*.md"), key=turn) or [RUNS / f"{run_id}.md"]
         self.transcript = "\n".join(p.read_text(errors="replace") for p in parts if p.exists())
 
     def git(self, *args):
@@ -276,7 +277,7 @@ def _usage(path):
                       "api_s": round(u["totalApiDurationMs"] / 1000) if isinstance(u.get("totalApiDurationMs"), (int, float)) else "n/a"}}
 
 
-def run_agent(run_id, timeout=1200, prompt=None, flags=None):
+def run_agent(run_id, timeout=1200, prompt=None, flags=None, append=False):
     """Runs every turn of the run's prompt with the Copilot CLI in its clone; writes RUN_ID.run.json.
 
     prompt overrides the step's prompt (one turn, the phase's agent) for probe runs, which are never counted."""
@@ -285,6 +286,8 @@ def run_agent(run_id, timeout=1200, prompt=None, flags=None):
     turns = prompt_for(run_id)
     if prompt:
         turns = [{"agent": turns[0]["agent"], "prompt": prompt}]
+    if append:
+        return _append_turn(run_id, meta, turns[0], timeout, flags or [])
     home = HOMES / meta["model"]
     if not home.exists():
         raise SystemExit(f"No Copilot home {home}: sign in there first")
@@ -318,6 +321,43 @@ def run_agent(run_id, timeout=1200, prompt=None, flags=None):
     record["agent_wall_s"] = sum(t["agent_wall_s"] for t in record["turns"])
     record["tool_calls"] = sum(t["tool_calls"] for t in record["turns"])
     (RUNS / f"{run_id}.run.json").write_text(json.dumps(record, indent=2))
+    return record
+
+
+def _append_turn(run_id, meta, turn, timeout, flags):
+    """One more turn for a multi-turn arm (Step 8): ask-first answers (with --continue, same session) or the next
+    Spec Kit phase (fresh session). Transcripts are RUN_ID-t1.md, -t2.md, ...; run.json gets the turn appended."""
+    home = HOMES / meta["model"]
+    runp = RUNS / f"{run_id}.run.json"
+    record = json.loads(runp.read_text()) if runp.exists() else {"run_id": run_id, "turns": []}
+    single = RUNS / f"{run_id}.md"
+    if single.exists() and not (RUNS / f"{run_id}-t1.md").exists():
+        single.rename(RUNS / f"{run_id}-t1.md")
+        for ext in (".usage.json", ".out"):
+            if (RUNS / f"{run_id}{ext}").exists():
+                (RUNS / f"{run_id}{ext}").rename(RUNS / f"{run_id}-t1{ext}")
+    n = len(record["turns"]) + 1
+    transcript, usage_file = RUNS / f"{run_id}-t{n}.md", RUNS / f"{run_id}-t{n}.usage.json"
+    cmd = ["copilot", "-p", turn["prompt"], "--model", meta["model"], "--allow-all", "--trust-folder", "--no-ask-user",
+           "--share", str(transcript), "--usage-output-file", str(usage_file), *flags]
+    if turn["agent"]:
+        cmd += ["--agent", turn["agent"]]
+    started = dt.datetime.now().isoformat(timespec="seconds")
+    t0 = time.time()
+    try:
+        r = subprocess.run(cmd, cwd=RUNS / run_id, capture_output=True, text=True, timeout=timeout,
+                           env={**os.environ, "COPILOT_HOME": str(home)})
+        rc, out = r.returncode, r.stdout + ("\n[stderr]\n" + r.stderr if r.stderr.strip() else "")
+    except subprocess.TimeoutExpired as e:
+        rc, out = "timeout", (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
+    (RUNS / f"{run_id}-t{n}.out").write_text(out)
+    text = transcript.read_text(errors="replace") if transcript.exists() else ""
+    record["turns"].append({"turn": n, "agent": turn["agent"], "prompt": turn["prompt"][:300], "flags": flags,
+                            "started": started, "agent_wall_s": round(time.time() - t0), "rc": rc,
+                            "tool_calls": len(re.findall(r"\n### `[^`]+`", text)), **_usage(usage_file)})
+    record["agent_wall_s"] = sum(t["agent_wall_s"] for t in record["turns"])
+    record["tool_calls"] = sum(t["tool_calls"] for t in record["turns"])
+    runp.write_text(json.dumps(record, indent=2))
     return record
 
 
@@ -392,7 +432,8 @@ def main():
     s = sub.add_parser("score"); s.add_argument("run_ids", nargs="+")
     rn = sub.add_parser("run"); rn.add_argument("run_ids", nargs="+"); rn.add_argument("--timeout", type=int, default=1200)
     rn.add_argument("--prompt", default=None, help="probe: replace the step's prompt (never counted)")
-    rn.add_argument("--flags", default=None, help="probe: extra copilot arguments, one string, split on spaces (never counted)")
+    rn.add_argument("--flags", default=None, help="extra copilot arguments, one string, split on spaces (probes; --continue for --append)")
+    rn.add_argument("--append", action="store_true", help="add one turn (with --prompt) as RUN_ID-tN.md: Step 8's multi-turn arms")
     m = sub.add_parser("metrics"); m.add_argument("run_ids", nargs="+"); m.add_argument("--design", required=True)
     m.add_argument("--counted", default="yes"); m.add_argument("--why", default=""); m.add_argument("--primitive", default="")
     cb = sub.add_parser("calibrate"); cb.add_argument("steps", type=int, nargs="+")
@@ -405,7 +446,7 @@ def main():
         out = parallel(lambda t: prepare(a.step, a.phase, a.model, t), tags)
         print(json.dumps(out[0] if len(out) == 1 else [{k: o[k] for k in ("id", "clone", "prepare_s")} for o in out], indent=2))
     elif a.cmd == "run":
-        for r in parallel(lambda i: run_agent(i, a.timeout, a.prompt, a.flags.split() if a.flags else None), a.run_ids):
+        for r in parallel(lambda i: run_agent(i, a.timeout, a.prompt, a.flags.split() if a.flags else None, a.append), a.run_ids):
             print(f"{r['run_id']}: {r['agent_wall_s']} s, {r['tool_calls']} tool calls, rc {[t['rc'] for t in r['turns']]}")
     elif a.cmd == "score":
         for r in parallel(score, a.run_ids):
