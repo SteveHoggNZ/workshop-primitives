@@ -89,6 +89,14 @@ def prepare(step, phase, model, tag):
     RUNS.mkdir(parents=True, exist_ok=True)
     sh(["git", "clone", "-q", "--no-hardlinks", "--branch", "main", str(ROOT), str(run)], ROOT)
     sh(["git", "remote", "remove", "origin"], run)
+    # One orphan commit with main's files, so a Before can't read the facilitator's history (git show <commit>:.lab/...;
+    # found in the Step 8 review). ./lab goto then adds the step commits on top, as for an attendee.
+    sh(["git", "checkout", "-q", "--orphan", "lab-run"], run)
+    sh(["git", *GIT_ID, "commit", "-qm", "Tasks lab"], run)
+    sh(["git", "branch", "-D", "main"], run)
+    sh(["git", "branch", "-m", "main"], run)
+    sh(["git", "reflog", "expire", "--expire=now", "--all"], run, check=False)
+    sh(["git", "gc", "-q", "--prune=now"], run, check=False)
     upto = step + 1 if phase == "after" else step
     if upto > 0:
         sh(["./lab", "goto", str(upto)], run, env={"GIT_AUTHOR_NAME": "Lab Harness", "GIT_AUTHOR_EMAIL": "lab@example.invalid",
@@ -354,7 +362,10 @@ def _append_turn(run_id, meta, turn, timeout, flags):
     except subprocess.TimeoutExpired as e:
         rc, out = "timeout", (e.stdout or b"").decode(errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
     (RUNS / f"{run_id}-t{n}.out").write_text(out)
-    text = transcript.read_text(errors="replace") if transcript.exists() else ""
+    if not transcript.exists():
+        # The CLI can exit 0 on a usage error and leave no session (Step 8: --resume with --trust-folder). Not a turn.
+        raise SystemExit(f"{run_id}: turn {n} left no transcript; not recorded. Output: {out.strip()[-300:]}")
+    text = transcript.read_text(errors="replace")
     record["turns"].append({"turn": n, "agent": turn["agent"], "prompt": turn["prompt"][:300], "flags": flags,
                             "started": started, "agent_wall_s": round(time.time() - t0), "rc": rc,
                             "tool_calls": len(re.findall(r"\n### `[^`]+`", text)), **_usage(usage_file)})

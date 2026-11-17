@@ -133,6 +133,15 @@ internal static class StepCommands
             }
         }
 
+        // Spec Kit's per-checkout pointer to the current feature is gitignored, so git doesn't see it; once specs/ is
+        // reset it points at nothing.
+        var feature = Path.Combine(Repo.Root, ".specify", "feature.json");
+        if (!dryRun && File.Exists(feature) && !Directory.Exists(Path.Combine(Repo.Root, "specs")))
+        {
+            File.Delete(feature);
+            Console.WriteLine("  remove   .specify/feature.json");
+        }
+
         if (leftAlone.Count > 0)
         {
             Console.WriteLine();

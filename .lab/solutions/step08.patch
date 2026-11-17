@@ -57,7 +57,7 @@ index a42ee6e..41ec4df 100644
      }
  }
 diff --git a/src/Tasks.App/Services/TaskService.cs b/src/Tasks.App/Services/TaskService.cs
-index 8d99ba0..57af02b 100644
+index 6de1e05..520a26d 100644
 --- a/src/Tasks.App/Services/TaskService.cs
 +++ b/src/Tasks.App/Services/TaskService.cs
 @@ -6,9 +6,9 @@ namespace Tasks.App.Services;
@@ -72,20 +72,18 @@ index 8d99ba0..57af02b 100644
          store.Add(task);
          return task;
      }
-@@ -39,6 +39,11 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
+@@ -52,4 +52,9 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
+         store.Replace(renamed);
          return renamed;
      }
- 
++
 +    public TaskItem? Update(TaskItem changed) => store.Replace(changed) ? changed : null;
 +
 +    /// <summary>Today's date for a user in <paramref name="zone"/>.</summary>
 +    public DateOnly Today(TimeZoneInfo zone) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(), zone).DateTime);
-+
-     public bool Delete(string id) => store.Remove(id);
- 
-     public IReadOnlyList<TaskItem> List() => store.All();
+ }
 diff --git a/src/Tasks.App/TaskApi.cs b/src/Tasks.App/TaskApi.cs
-index a552fd0..8e46a7c 100644
+index 981453d..9120283 100644
 --- a/src/Tasks.App/TaskApi.cs
 +++ b/src/Tasks.App/TaskApi.cs
 @@ -1,3 +1,5 @@
@@ -94,8 +92,8 @@ index a552fd0..8e46a7c 100644
  using Tasks.App.Models;
  using Tasks.App.Services;
  
-@@ -6,26 +8,73 @@ namespace Tasks.App;
- /// <summary>The JSON API for tasks, under /api/tasks.</summary>
+@@ -6,24 +8,71 @@ namespace Tasks.App;
+ /// <summary>The JSON API for changing tasks, under /api/tasks (the read endpoint is in Program.cs).</summary>
  public static class TaskApi
  {
 -    public sealed record NewTask(string? Title);
@@ -109,13 +107,11 @@ index a552fd0..8e46a7c 100644
  
      public static void Map(WebApplication app)
      {
-         app.MapGet("/api/tasks/recent", (ITaskQueries queries) => queries.Recent());
- 
 -        app.MapPost("/api/tasks", (NewTask body, TaskService tasks) =>
 +        app.MapGet("/api/tasks", (string? sort, string? priority, DateOnly? due_before, TaskService tasks, AppSettings settings) =>
 +        {
 +            var today = tasks.Today(settings.Zone);
-+            IEnumerable<TaskItem> rows = tasks.List().OrderBy(t => t.CreatedAt);
++            IEnumerable<TaskItem> rows = tasks.List().OrderByDescending(t => t.CreatedAt);
 +            if (priority is not null)
 +            {
 +                rows = rows.Where(t => t.Priority == priority);
@@ -128,7 +124,7 @@ index a552fd0..8e46a7c 100644
 +
 +            if (sort == "priority")
 +            {
-+                rows = rows.OrderBy(t => Array.IndexOf(TaskItem.Priorities, t.Priority)).ThenBy(t => t.DueDate is null).ThenBy(t => t.DueDate).ThenBy(t => t.CreatedAt);
++                rows = rows.OrderBy(t => Array.IndexOf(TaskItem.Priorities, t.Priority)).ThenBy(t => t.DueDate is null).ThenBy(t => t.DueDate);
 +            }
 +
 +            return Results.Ok(rows.Select(t => Dto(t, today)));
@@ -175,7 +171,7 @@ index a552fd0..8e46a7c 100644
          {
              var task = tasks.List().FirstOrDefault(t => t.Id == id);
              if (task is null)
-@@ -33,17 +82,44 @@ public static class TaskApi
+@@ -31,17 +80,44 @@ public static class TaskApi
                  return Results.NotFound();
              }
  
