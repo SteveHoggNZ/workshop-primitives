@@ -1,4 +1,5 @@
 using Tasks.App;
+using Tasks.App.Agent;
 using Tasks.App.Data;
 using Tasks.App.Services;
 
@@ -28,6 +29,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<TaskService>();
 builder.Services.AddSingleton<ITaskQueries>(sp => sp.GetRequiredService<TaskService>());
 builder.Services.AddSingleton<ActivityFeed>();
+builder.Services.AddSingleton<ScriptedAgent>();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();

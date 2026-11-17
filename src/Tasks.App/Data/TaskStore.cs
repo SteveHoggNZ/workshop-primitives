@@ -41,6 +41,14 @@ public sealed class TaskStore
         }
     }
 
+    public bool Remove(string id)
+    {
+        lock (_gate)
+        {
+            return _items.RemoveAll(t => t.Id == id) > 0;
+        }
+    }
+
     public void Clear()
     {
         lock (_gate)

@@ -26,6 +26,8 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
         return done;
     }
 
+    public bool Delete(string id) => store.Remove(id);
+
     public IReadOnlyList<TaskItem> List() => store.All();
 
     public IReadOnlyList<TaskItem> Open() => [.. store.All().Where(t => !t.Done).OrderBy(t => t.CreatedAt)];

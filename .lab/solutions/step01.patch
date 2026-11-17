@@ -18,8 +18,8 @@ index ad64670..131349c 100644
  | `/Recent` | Recent | The five newest tasks |
 +| `/Completed` | Completed | Completed tasks, newest first, and when the page was loaded |
  | `/Reports` | Reports | Weekly completion report |
+ | `/Agent` | Agent | The in-app agent: type commands to manage tasks ([commands](agent-commands.md)) |
  
- ## API
 diff --git a/src/Tasks.App/Pages/Completed.cshtml b/src/Tasks.App/Pages/Completed.cshtml
 new file mode 100644
 index 0000000..8fbbf6e
@@ -83,9 +83,9 @@ index 2cd889e..a917252 100644
              <a href="/">Tasks</a>
              <a href="/Recent">Recent</a>
 +            <a href="/Completed">Completed</a>
+             <a href="/Agent">Agent</a>
          </nav>
      </header>
-     <main>
 diff --git a/tests/Tasks.App.Tests/PageTests.cs b/tests/Tasks.App.Tests/PageTests.cs
 index 82eec1f..f901db7 100644
 --- a/tests/Tasks.App.Tests/PageTests.cs

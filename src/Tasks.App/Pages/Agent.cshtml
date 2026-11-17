@@ -1,0 +1,22 @@
+@page
+@model AgentModel
+@{
+    ViewData["Title"] = "Agent";
+}
+<section data-page="agent">
+    <h1>Agent</h1>
+    <p>Type <code>help</code> to see what I can do.</p>
+    <ol>
+        @foreach (var turn in Model.Conversation)
+        {
+            <li>
+                <p><strong>&gt; @turn.Message</strong></p>
+                <pre>@turn.Reply</pre>
+            </li>
+        }
+    </ol>
+    <form method="post">
+        <input name="Message" autocomplete="off" autofocus />
+        <button type="submit">Send</button>
+    </form>
+</section>
