@@ -19,6 +19,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
 | `/Reports` | Reports | Weekly completion report |
 | `/Agent` | Agent | The in-app agent: type commands to manage tasks |
 | `/Dashboard` | Dashboard | This week's start date and the share of tasks done |
+| `/Bulk` | Bulk | Generate 10,000 sample tasks; search titles |
 
 ## API
 
@@ -34,3 +35,4 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
 | `TaskCommands` | `Services/TaskCommands.cs` | Parses quick-add commands |
 | `ScriptedAgent` | `Agent/ScriptedAgent.cs` | The in-app agent: matches commands in `AgentIntents` to tools in `AgentTools` |
 | `TaskStats` | `Services/TaskStats.cs` | Numbers for the dashboard |
+| `SearchService` | `Services/SearchService.cs` | Title search for `/Bulk`, using `TextHelpers` to ignore case and stop words |

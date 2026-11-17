@@ -1,0 +1,18 @@
+@page
+@model BulkModel
+@{
+    ViewData["Title"] = "Bulk";
+}
+<h1>Bulk</h1>
+<p>@Model.Total tasks.</p>
+<form method="post" asp-page-handler="Generate">
+    <button type="submit">Generate @BulkModel.SampleSize.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) sample tasks</button>
+</form>
+<form method="get">
+    <input name="q" value="@Model.Q" placeholder="Search titles" />
+    <button type="submit">Search</button>
+</form>
+@if (Model.Matches is { } matches)
+{
+    <p>@matches matching "@Model.Q".</p>
+}

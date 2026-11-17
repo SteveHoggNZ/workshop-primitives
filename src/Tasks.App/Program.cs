@@ -29,6 +29,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton<TaskService>();
 builder.Services.AddSingleton<ITaskQueries>(sp => sp.GetRequiredService<TaskService>());
 builder.Services.AddSingleton<ActivityFeed>();
+builder.Services.AddSingleton<SearchService>();
 builder.Services.AddSingleton<ScriptedAgent>();
 builder.Services.AddRazorPages();
 
