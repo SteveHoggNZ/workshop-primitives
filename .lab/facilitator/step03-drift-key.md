@@ -12,6 +12,10 @@ Planted on purpose. A reviewer that finds most of these, without editing anythin
 | 6 | (missing) | `ActivityFeed` service | `ActivityFeed` |
 | 7 | (missing) | `ITaskQueries` interface | `ITaskQueries` |
 
+A reviewer passes item 1 with 5 of the 7. Reports often add true extras that aren't planted: `Recent`
+reads `TaskStore` directly and uses `DateTime.Now` (Step 0's lint page), and `FixedTimeProvider`,
+`AgentIntents`, `AgentTools` aren't in the Services table. Those are fine; they don't count towards the 5.
+
 Notes:
 - A Step 1 After that "tidies" the doc can fix some of these. Run `./lab reset` (or `./lab goto 3`) before the reviewer step.
 - Keep this key in step with the code: when a later step adds pages or services, decide whether the doc should list them.

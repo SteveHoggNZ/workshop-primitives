@@ -54,6 +54,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
 - **Step 1** is scored from the diff plus the pasted final message (item 5, the `Total:` line).
 - **Step 2** is scored from the diff, `dotnet test`, a few commands typed at `/Agent` (`clear completed`
   then `no`; `clear completed` then `yes`), and the pasted final message (item 6, the live run).
+- **Step 3**'s After runs **as** the `docs-reviewer` agent (agent picker in VS Code, `--agent docs-reviewer`
+  in the CLI), not the default agent. Score it from `git status`, `git diff` and the pasted final message.
 
 ## Rules
 

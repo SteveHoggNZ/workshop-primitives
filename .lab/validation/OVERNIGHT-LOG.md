@@ -69,3 +69,18 @@ Next: Step 3 (read OVERNIGHT.md)
   `--solutions` all OK (tests 11/13/15 passed); lint with step 0 `Total: 6 (baseline 6)`. Nothing to fix.
   Whole check 728 s, mostly cold restores and builds in 7 clones. Next: harness improvements (run command with
   metrics, one build per score).
+- **21:40** Harness commits `e28015e` (one build per score, verified identical on 4 calibration clones scored
+  with old and new code; `run`, `calibrate`, `metrics`, parallel prepare/score) and 6b86da3 (compact usage, probe prompts).
+  Next: Step 3.
+
+### Step 3: read-only reviewer
+
+- **21:35** Step 3 started. Design v1 (from Python step 4): prompt "Make sure docs/architecture.md matches the code."
+  in both arms; After selects `docs-reviewer` (`tools: ["read", "search"]`). Checklist: 1 baseline finds ≥5/7 drift
+  (report or doc fix); 2 lesson no files changed; 3 lesson fixed format (## Wrong / ## Missing / Total); 4 lesson
+  every item cites an existing path and Total matches. Desk check: nothing in the base names the format or the
+  agent; AGENTS.md doesn't say to edit the doc on a review. Commit `cd8c7eb`. Calibration: ref 4/4, untouched 1/4
+  (changing nothing keeps item 2, as expected). Next: pilot.
+- **21:40** Pilot: `s03-before-gpt-5.6-luna-v1-r1` 1/4 (found 7/7 and fixed the doc, summary only, 51 s);
+  `s03-after-gpt-5.6-luna-v1-r1` 4/4 (only view/glob/rg, 7 items with paths, 39 s). Before lost on the gap, not
+  competence. Next: r2, r3 per arm + one probe asking the reviewer to fix the doc.

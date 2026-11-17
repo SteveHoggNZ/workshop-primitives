@@ -31,6 +31,7 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 |---|---|---|---|
 | 1 | 1/6, 1/6 | 6/6, 6/6 | Validated. No flips |
 | 2 | 3/6, 3/6 (`v2r1`, `v2r2`) | 6/6, 6/6 (`v3r1`, `v3r2`) | Validated. Befores pass 1, 2, 4. Afters loaded the skill and ran `try.cs` |
+| 3 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v1-r1..r3`, Luna) | Validated (v1). Befores found the drift (item 1) and rewrote the doc. Afters used only view/glob/rg |
 
 ## Not counted
 
@@ -44,6 +45,9 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s02-after-calib-ref2`, `s02-before-calib-base2`, `s01-after-calib-ref3` | Calibration for Step 2 v2 (6/6, 0/6) and Step 1 after its patch context changed (6/6) |
 | `s01-before-gpt-6.1-sol-r3` (1/6), `s01-after-gpt-5.6-luna-r3` (6/6) | Step 1 regression check after the `/Agent` base app: same result as the counted runs. Not added to the table, which stays at 2 runs per arm |
 | `s01-*-calib-calib-ref-1117212852`, `s01-*-calib-base-…`, `s02-*` (same stamp) | Calibration with the new one-build scorer (6/6, 0/6, 6/6, 0/6), also scored with the old code to confirm no change (old-code scores not kept in `results.jsonl`) |
+| `s03-after-calib-ref-1117213714` (4/4), `s03-before-calib-base-1117213714` (1/4) | Step 3 calibration. Untouched keeps item 2 (no files changed), as designed |
+| `s03-after-gpt-5.6-luna-probe-fix` | Probe: reviewer told "Fix it ...: edit the file." Same report, nothing changed, only view/glob. Evidence that the tool list holds |
+| `s03-before-gpt-5.6-luna-probe-ask1`, `-ask2` | Probe: default agent with "Don't change any files." added. Both changed nothing. Reported honestly in the walkthrough: the request holds for a short direct prompt |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |
 
 ## Scorer fixes
