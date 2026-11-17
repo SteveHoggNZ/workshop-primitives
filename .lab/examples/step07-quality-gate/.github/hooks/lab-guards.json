@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "./lab hook guard --bar",
+        "powershell": ".\\lab.cmd hook guard --bar",
+        "timeoutSec": 15
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "./lab hook gate",
+        "powershell": ".\\lab.cmd hook gate",
+        "timeoutSec": 180
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+diff --git a/docs/architecture.md b/docs/architecture.md
+index 62ef5de..10bd674 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -20,6 +20,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
+ | `/Agent` | Agent | The in-app agent: type commands to manage tasks |
+ | `/Dashboard` | Dashboard | This week's start date and the share of tasks done |
+ | `/Bulk` | Bulk | Generate 10,000 sample tasks; search titles |
++| `/Archive` | Archive | Completed tasks, oldest first |
+ 
+ ## API
+ 
+diff --git a/src/Tasks.App/Pages/Archive.cshtml b/src/Tasks.App/Pages/Archive.cshtml
+new file mode 100644
+index 0000000..608b0ee
+--- /dev/null
++++ b/src/Tasks.App/Pages/Archive.cshtml
+@@ -0,0 +1,19 @@
++@page
++@model ArchiveModel
++@{
++    ViewData["Title"] = "Archive";
++}
++<h1>Archive</h1>
++@if (Model.Done.Count == 0)
++{
++    <p>No completed tasks yet.</p>
++}
++else
++{
++    <ol>
++        @foreach (var task in Model.Done)
++        {
++            <li>@task.Title</li>
++        }
++    </ol>
++}
+diff --git a/src/Tasks.App/Pages/Archive.cshtml.cs b/src/Tasks.App/Pages/Archive.cshtml.cs
+new file mode 100644
+index 0000000..1a1e6c2
+--- /dev/null
++++ b/src/Tasks.App/Pages/Archive.cshtml.cs
+@@ -0,0 +1,12 @@
++using Microsoft.AspNetCore.Mvc.RazorPages;
++using Tasks.App.Models;
++using Tasks.App.Services;
++
++namespace Tasks.App.Pages;
++
++public class ArchiveModel(TaskService tasks) : PageModel
++{
++    public IReadOnlyList<TaskItem> Done { get; private set; } = [];
++
++    public void OnGet() => Done = [.. tasks.Completed().OrderBy(t => t.CompletedAt)];
++}
+diff --git a/src/Tasks.App/Pages/Recent.cshtml.cs b/src/Tasks.App/Pages/Recent.cshtml.cs
+index 5ff42d8..dc9d197 100644
+--- a/src/Tasks.App/Pages/Recent.cshtml.cs
++++ b/src/Tasks.App/Pages/Recent.cshtml.cs
+@@ -26,7 +26,7 @@ public class RecentModel : PageModel
+     public void OnGet()
+     {
+         var all = _store.All();
+-        Total = all.Count();
++        Total = all.Count;
+         Tasks = all.OrderByDescending(t => t.CreatedAt).Take(5).ToList();
+         Labels = new List<string>();
+         foreach (var task in Tasks)
+diff --git a/src/Tasks.App/Pages/Shared/_Layout.cshtml b/src/Tasks.App/Pages/Shared/_Layout.cshtml
+index f44f944..2e0427e 100644
+--- a/src/Tasks.App/Pages/Shared/_Layout.cshtml
++++ b/src/Tasks.App/Pages/Shared/_Layout.cshtml
+@@ -13,6 +13,7 @@
+             <a href="/Agent">Agent</a>
+             <a href="/Dashboard">Dashboard</a>
+             <a href="/Bulk">Bulk</a>
++            <a href="/Archive">Archive</a>
+         </nav>
+     </header>
+     <main>
+diff --git a/tests/Tasks.App.Tests/ArchiveTests.cs b/tests/Tasks.App.Tests/ArchiveTests.cs
+new file mode 100644
+index 0000000..86a0ff9
+--- /dev/null
++++ b/tests/Tasks.App.Tests/ArchiveTests.cs
+@@ -0,0 +1,20 @@
++namespace Tasks.App.Tests;
++
++public class ArchiveTests
++{
++    [Fact]
++    public async Task Archive_lists_completed_tasks_oldest_first()
++    {
++        using var app = new TestApp();
++        var older = app.Tasks.Add("Older");
++        var newer = app.Tasks.Add("Newer");
++        app.Tasks.Complete(older.Id);
++        app.Clock.Advance(TimeSpan.FromMinutes(1));
++        app.Tasks.Complete(newer.Id);
++        using var client = app.CreateClient();
++
++        var html = await client.GetStringAsync("/Archive");
++
++        Assert.True(html.IndexOf("Older", StringComparison.Ordinal) < html.IndexOf("Newer", StringComparison.Ordinal));
++    }
++}
