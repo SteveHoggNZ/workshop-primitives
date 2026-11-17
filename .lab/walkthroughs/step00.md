@@ -77,7 +77,7 @@ already runs one for C# (the C# extension), so there's nothing to install.
 
    Expand the response's tool calls: did it use a text search, or a references/usages lookup?
 2. **Do it both ways yourself.** Search the workspace for `Recent(` (Cmd+Shift+F): six hits. Then open
-   [TaskService.cs](../../src/Tasks.App/Services/TaskService.cs#L33), put the cursor on `Recent` and
+   [TaskService.cs](../../src/Tasks.App/Services/TaskService.cs#L35), put the cursor on `Recent` and
    press **Shift+F12** (Find All References): just the real ones.
 3. **Ask again, naming the tool.** In another new chat, add one line to the same prompt:
 
@@ -131,9 +131,9 @@ interface.
 | Text search hit for `Recent(` | Calls `TaskService.Recent()`? |
 |---|---|
 | [TaskServiceTests.cs L26](../../tests/Tasks.App.Tests/TaskServiceTests.cs#L26) `app.Tasks.Recent()` | **Yes** |
-| [Program.cs L35](../../src/Tasks.App/Program.cs#L35) `queries.Recent()` | **Yes**, through `ITaskQueries`, which `TaskService` implements. No "TaskService" on that line |
+| [Program.cs L37](../../src/Tasks.App/Program.cs#L37) `queries.Recent()` | **Yes**, through `ITaskQueries`, which `TaskService` implements. No "TaskService" on that line |
 | [Index.cshtml.cs L19](../../src/Tasks.App/Pages/Index.cshtml.cs#L19) `feed.Recent(3)` | **No**: that's `ActivityFeed.Recent()`, a different method with the same name |
-| [TaskService.cs L33](../../src/Tasks.App/Services/TaskService.cs#L33), [ITaskQueries.cs L10](../../src/Tasks.App/Services/ITaskQueries.cs#L10), [ActivityFeed.cs L6](../../src/Tasks.App/Services/ActivityFeed.cs#L6) | No: declarations |
+| [TaskService.cs L35](../../src/Tasks.App/Services/TaskService.cs#L35), [ITaskQueries.cs L10](../../src/Tasks.App/Services/ITaskQueries.cs#L10), [ActivityFeed.cs L6](../../src/Tasks.App/Services/ActivityFeed.cs#L6) | No: declarations |
 
 A strong model reading carefully usually gets this right from text search too; it just reads more
 files to get there, and a smaller model may count `feed.Recent(3)` or miss the interface call. Find All

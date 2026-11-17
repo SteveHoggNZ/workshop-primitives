@@ -26,19 +26,6 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
         return done;
     }
 
-    public TaskItem? Rename(string id, string title)
-    {
-        var task = store.All().FirstOrDefault(t => t.Id == id);
-        if (task is null)
-        {
-            return null;
-        }
-
-        var renamed = task with { Title = title.Trim() };
-        store.Replace(renamed);
-        return renamed;
-    }
-
     public bool Delete(string id) => store.Remove(id);
 
     public IReadOnlyList<TaskItem> List() => store.All();
@@ -52,4 +39,17 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
         [.. store.All().Where(t => t.Done).OrderByDescending(t => t.CompletedAt)];
 
     public void DeleteAll() => store.Clear();
+
+    public TaskItem? Rename(string id, string title)
+    {
+        var task = store.All().FirstOrDefault(t => t.Id == id);
+        if (task is null)
+        {
+            return null;
+        }
+
+        var renamed = task with { Title = title.Trim() };
+        store.Replace(renamed);
+        return renamed;
+    }
 }

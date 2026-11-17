@@ -3,7 +3,7 @@ using Tasks.App.Services;
 
 namespace Tasks.App;
 
-/// <summary>The JSON API for tasks, under /api/tasks.</summary>
+/// <summary>The JSON API for changing tasks, under /api/tasks (the read endpoint is in Program.cs).</summary>
 public static class TaskApi
 {
     public sealed record NewTask(string? Title);
@@ -12,8 +12,6 @@ public static class TaskApi
 
     public static void Map(WebApplication app)
     {
-        app.MapGet("/api/tasks/recent", (ITaskQueries queries) => queries.Recent());
-
         app.MapPost("/api/tasks", (NewTask body, TaskService tasks) =>
         {
             if (string.IsNullOrWhiteSpace(body.Title))
