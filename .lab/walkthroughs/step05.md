@@ -157,8 +157,9 @@ The reference solution is [.lab/solutions/step05.patch](../solutions/step05.patc
 
 - `./lab warm` (once, in setup) builds the profiler script and downloads its two packages. Without
   it, the first `profile.cs` run downloads them during the step.
-- `profile.cs` takes **10–20 s while the page is slow** (it rebuilds, then times the 1 s page four
-  times) and under 10 s once it's fast. The first run in a fresh copy of the repo: about 20 s.
+- `profile.cs` takes **6–10 s while the page is slow** on a quiet machine (it rebuilds, then times the
+  1 s page four times; we measured 9.7 s for the first run in a fresh copy and 6.3 s after that), and
+  13–21 s when the machine is busy (as it was for part of our validation). Under 10 s once the page is fast.
 
 ## If the After didn't improve
 

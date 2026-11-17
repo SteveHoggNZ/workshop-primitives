@@ -213,3 +213,8 @@ Next: Step 3 (read OVERNIGHT.md)
   lint 5 (baseline 6); calibration s01 6/0, s02 6/0, s03 4/1, s04 5/0, s05 4/0, s06 4/1, s07 5/1, s08 8/0. Also fixed Step 0
   drift from tonight's base changes: Program.cs call site back at L37, TaskService.Recent at L35 (walkthrough links had
   been 2 lines stale since Step 2; corrected). Next: Spec Kit v2 results, rehearsal, report.
+- **00:04** Spec Kit v2: 7, 7, 7 (misses: overdue meaning, the 422, the page: one unasked decision each). Step 8 final: one prompt
+  0, 0, 1; ask 7, 7, 7; Spec Kit 7, 7, 7; credits ~4.7 / ~4.7 / ~18.5; time 3.4–4.5 / 3.5–4.1 / 9.3–11.2 min.
+  Demo rehearsal (`rehearse.py`, fresh clone of `4a01dc6`, quiet machine): every walkthrough command OK; slowest
+  `./lab warm` 11 s (setup), profile.cs 9.7 s first / 6.3 s warm, gate full check 6.8 s, `lab tdd green` 5.0 s,
+  doctor 5.5 s cold. 34 attendee timings in metrics.jsonl. Next: report, clean-up.
