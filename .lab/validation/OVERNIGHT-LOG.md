@@ -197,3 +197,7 @@ Next: Step 3 (read OVERNIGHT.md)
   26–32; implement 210–378 s). Spec Kit misses: specs said "a clear validation response"/"client error" without a
   marker → 400, not 422 (r1, r3); r1 also sort ties. Credits: one prompt ~3.4, ask ~5, Spec Kit 15–21. Harness: `run
   --append` for later turns; `--resume` can't take `--trust-folder` (failed turns, no session) → `--add-dir`. Next: review.
+- **23:43** Step 7 v3 (`./lab scenario 7` also leaves SeedData.cs badly indented; the gate runs `dotnet format whitespace
+  --verify-no-changes`; items: works, lint, format (lessons), suite incl. red test, integrity): Before 3/5 ×3 (fixed the red
+  test, left lint and format), After 5/5 ×3 (blocked once each, gate 3–6 s). Gate passes. Calibration 5/5, 1/5. Next: commit,
+  Step 8 review, regression pass.
