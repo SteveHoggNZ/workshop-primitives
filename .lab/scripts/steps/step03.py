@@ -23,7 +23,7 @@ KEYS = [
     ("storage is in-memory, not SQLite/EF Core", r"sqlite|entity framework|ef core|in[- ]memory",
      r"^-.*(sqlite|entity framework)|^\+.*(in[- ]memory|TaskStore)"),
     ("Data/TasksDbContext.cs doesn't exist", r"TasksDbContext", r"^-.*TasksDbContext"),
-    ("no /Reports page", r"/Reports|\bReports\b", r"^-.*Reports"),
+    ("no /Reports page", r"/Reports|Reports\.cshtml|Reports (page|route)|no Reports", r"^-.*Reports"),
     ("API is GET /api/tasks/recent", r"/api/tasks/recent", r"^\+.*/api/tasks/recent"),
     ("Services/TaskCommands.cs doesn't exist", r"TaskCommands", r"^-.*TaskCommands"),
     ("ActivityFeed missing", r"ActivityFeed", r"^\+.*ActivityFeed"),
@@ -66,36 +66,61 @@ def _found(ev, final):
     return hits
 
 
+ITEM = re.compile(r"^\s*(\d+[.)]|[-*+])\s+\S")
+TOTAL = re.compile(r"^\W{0,4}Total\b[^\d\n]{0,12}(\d+)", re.M | re.I)
+
+
 def _sections(final):
-    """Bullets under ## Wrong and ## Missing, and the Total line's number (None if missing)."""
-    bullets = []
+    """Items under ## Wrong and ## Missing (bullets or numbered, continuation lines joined), and the number on
+    the Total line after them (None if missing). Only a Total after the report counts: AGENTS.md also asks for
+    lint's `Total:` line, which may come earlier."""
+    items = []
     current = None
+    seen_report = False
+    total = None
     for line in final.splitlines():
-        h = re.match(r"^#{2,3}\s*(Wrong|Missing)\b", line.strip(), re.I)
-        if h:
-            current = h.group(1).lower()
+        st = line.strip()
+        if re.match(r"^#{2,3}\s*\**(Wrong|Missing)\b", st, re.I):
+            current, seen_report = True, True
             continue
-        if re.match(r"^#{1,3}\s", line.strip()) or re.match(r"^\**Total", line.strip()):
+        t = TOTAL.match(st)
+        if t and seen_report:
+            total = int(t.group(1))
             current = None
-        if current and re.match(r"^\s*[-*]\s+\S", line):
-            bullets.append(line)
-    total = re.search(r"^\**Total:?\**\s*\**(\d+)", final, re.M)
-    return bullets, (int(total.group(1)) if total else None)
+            continue
+        if re.match(r"^#{1,3}\s", st):
+            current = None
+        if not current:
+            continue
+        if ITEM.match(line):
+            items.append(line)
+        elif st and items and line[:1] in " \t":
+            items[-1] += " " + st
+    return items, total
+
+
+def _paths(item):
+    """Path-like tokens in an item: backticked text, markdown link targets, and bare paths with an extension."""
+    toks = re.findall(r"`([^`]+)`", item) + re.findall(r"\]\(([^)\s]+)\)", item)
+    toks += re.findall(r"(?<![\w`/])((?:src|tests)[\\/][\w./\\-]+|[\w./\\-]+\.(?:cs|cshtml))", item)
+    return [t.replace("\\", "/").split("#")[0] for t in toks]
 
 
 def _resolves(ev, token, tracked):
-    t = token.strip().strip("/").split(":")[0]
-    if not t or " " in t:
+    """A file or folder of the app or its tests (not the doc under review, not a bare name or route)."""
+    t = token.strip().lstrip("./").split(":")[0].rstrip("/")
+    if not t or " " in t or t.startswith("docs/") or "/" not in t and "." not in t:
         return False
-    if (ev.dir / t).exists():
-        return True
-    return any(f == t or f.endswith("/" + t) or ("/" + t + "/") in ("/" + f) for f in tracked)
+    hits = [f for f in tracked if f == t or f.endswith("/" + t) or f.startswith(t + "/") or ("/" + t + "/") in ("/" + f)]
+    return any(f.startswith(("src/", "tests/")) for f in hits)
 
 
 def primitive_used(ev):
     """The reviewer has no edit or shell tools: an After run that used only read/search tools used it."""
     used = {name for _, name, _ in calls(ev)}
-    return "yes" if used and used <= READ_ONLY_TOOLS else f"no ({', '.join(sorted(used - READ_ONLY_TOOLS))})"
+    if not used:
+        return "n/a"
+    return "yes" if used <= READ_ONLY_TOOLS else f"no ({', '.join(sorted(used - READ_ONLY_TOOLS))})"
 
 
 def score(ev):
@@ -106,7 +131,7 @@ def score(ev):
                and _sections(final)[1] is not None)
     bullets, total = _sections(final)
     tracked = ev.git("ls-files").split()
-    cited = [b for b in bullets if any(_resolves(ev, tok, tracked) for tok in re.findall(r"`([^`]+)`", b))]
+    cited = [b for b in bullets if any(_resolves(ev, tok, tracked) for tok in _paths(b))]
     checkable = bool(bullets) and len(cited) == len(bullets) and total == len(bullets)
     return [
         ("finds at least 5 of the 7 drift items (report or doc fix)", len(found) >= 5, f"{len(found)}/7: {'; '.join(found)}"),

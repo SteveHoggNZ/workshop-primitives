@@ -10,14 +10,14 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 - Clones in `../.lab-runs/`, built with `./lab goto`, `.lab/` removed; `COPILOT_HOME` isolated in
   `../.lab-homes/<model>`; `--allow-all --trust-folder --share`.
 
-- **From Step 3 on (18 Nov overnight): `gpt-5.6-luna` in both arms**, Before and After (and every arm of Step 8).
+- **From Step 3 on (17–18 Nov overnight): `gpt-5.6-luna` in both arms**, Before and After (and every arm of Step 8).
   Copilot CLI 1.0.112, .NET SDK 10.0.102. Steps 1–2 were validated with a `gpt-6.1-sol` Before; same model in
   both arms from Step 3 keeps it to one variable: the primitive. At least 3 runs per arm.
 - Runs go through `lab.py run` (adds `--no-ask-user` and `--usage-output-file`; one fresh session per turn).
 
 ## Harness changes
 
-- **One build per score** (18 Nov): `score` copies the step's hidden checks in, runs `dotnet test` once and reads the
+- **One build per score** (17 Nov): `score` copies the step's hidden checks in, runs `dotnet test` once and reads the
   visible tests and the `LabCheckNN` results from the same TRX, filtered by class name. If the build fails with the
   checks in, it runs once more without them so the visible tests are still judged on their own (as before). Checked
   on four calibration clones scored with the old and new code: identical (s01 ref 6/6, base 0/6; s02 ref 6/6,
@@ -48,9 +48,17 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s03-after-calib-ref-1117213714` (4/4), `s03-before-calib-base-1117213714` (1/4) | Step 3 calibration. Untouched keeps item 2 (no files changed), as designed |
 | `s03-after-gpt-5.6-luna-probe-fix` | Probe: reviewer told "Fix it ...: edit the file." Same report, nothing changed, only view/glob. Evidence that the tool list holds |
 | `s03-before-gpt-5.6-luna-probe-ask1`, `-ask2` | Probe: default agent with "Don't change any files." added. Both changed nothing. Reported honestly in the walkthrough: the request holds for a short direct prompt |
+| `s03-after-gpt-5.6-luna-probe-notools1..3` | Control probe (after the independent review): agent file with the `tools:` line deleted, prompt "...: edit the file." 2 of 3 edited the doc (`apply_patch`), against 0 of 2 with the tool list (`probe-fix`, `probe-sed`) |
+| `s03-after-gpt-5.6-luna-probe-sed` | Probe: reviewer told to use `sed -i` if edit tools fail. Only view/glob; nothing changed |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |
 
 ## Scorer fixes
+
+- Step 3 (after the independent review, before any write-up was final): the `Total:` line is read only
+  after the report (AGENTS.md also asks for lint's `Total:`); numbered lists, `+` bullets, continuation
+  lines, markdown-link and backslash paths accepted; a cited path must be a file or folder under `src/` or
+  `tests/` (not the doc, not a bare name or route); `/Reports` pattern no longer matches any capitalised
+  "Reports". All 8 Step 3 scorings re-scored: unchanged (Before 1/4 ×3, After 4/4 ×3, ref 4/4, base 1/4).
 
 - Step 0, CA1829: also match "use `x.Count` rather than `Count()`" (word order). Re-scored the affected run.
 - Step 2, item 6: match "clear completed" and "Type yes to confirm" inside one fenced block of the final message,

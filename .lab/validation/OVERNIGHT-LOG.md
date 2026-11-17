@@ -84,3 +84,11 @@ Next: Step 3 (read OVERNIGHT.md)
 - **21:40** Pilot: `s03-before-gpt-5.6-luna-v1-r1` 1/4 (found 7/7 and fixed the doc, summary only, 51 s);
   `s03-after-gpt-5.6-luna-v1-r1` 4/4 (only view/glob/rg, 7 items with paths, 39 s). Before lost on the gap, not
   competence. Next: r2, r3 per arm + one probe asking the reviewer to fix the doc.
+- **21:50** Full round v1: Before r2, r3 1/4; After r2, r3 4/4 (all used only read/search tools). Probes: reviewer
+  told to edit, changed nothing; default agent + "Don't change any files." changed nothing (2/2). Gate passes.
+  Commit `ce17224` (walkthrough, notes, README, wizard). Next: independent review.
+- **22:05** Review findings (cold subagent): must-fix, the score didn't show the tool list did the enforcing (no
+  After tried to edit). Control probes: `tools:` line deleted + "edit the file" → 2/3 edited; with tools 0/2
+  (one pushed to `sed -i`). Should-fix scorer: Total clash with AGENTS.md's lint Total, numbered lists and link
+  paths, loose path check, `Reports` regex. Fixed; re-scored all 8: unchanged. Windows note, wording nits.
+  Next: commit, then Step 4.

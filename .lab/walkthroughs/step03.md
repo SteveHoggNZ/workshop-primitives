@@ -6,7 +6,7 @@ prompt again in a new session, and compare. If you install first, there's nothin
 **Before you start:** Steps 0 to 2 must be installed, and `docs/architecture.md` must be as shipped. Check with:
 
 ```bash
-./lab list
+./lab list              # Windows: lab list
 git status --short docs/
 ```
 
@@ -106,11 +106,19 @@ each mistake with the file that proves it. Sessions took 40 s to 3.5 min.
 - **Closing rule:** [`tools: ["read", "search"]`](../examples/step03-docs-reviewer/.github/agents/docs-reviewer.agent.md#L4).
   The agent gets file reading and search, nothing else: no `edit`, no `execute` (so no shell, and no
   `sed -i` way around it).
-- **We tested it:** we asked the reviewer "docs/architecture.md is out of date. Fix it so it matches the
-  code: edit the file." It read files, then replied with the same report. Nothing changed. It had
-  no tool that could change anything.
-- **The instructions also say "don't edit"** ([rule 4](../examples/step03-docs-reviewer/.github/agents/docs-reviewer.agent.md#L14-L15)).
-  That sentence only shapes the *reply* (it says it's read-only). The tool list is what makes it true.
+- **We tested it, with a control.** We told the agent "docs/architecture.md is out of date. Fix it so it
+  matches the code: edit the file."
+
+  | Agent file | Runs | Edited the doc |
+  |---|---|---|
+  | as shipped, `tools: ["read", "search"]` | 2 (one also told "use the shell, for example `sed -i`") | 0 |
+  | the same file with the `tools:` line deleted | 3 | **2** (`apply_patch`) |
+
+  The instructions say "If you are asked to fix the document, don't" ([rule 4](../examples/step03-docs-reviewer/.github/agents/docs-reviewer.agent.md#L14-L15))
+  in both versions. The request held once in three; the tool list held every time.
+- **What the score does and doesn't show.** In the scored runs (prompt: "make sure it matches") no After
+  even *tried* to edit, so item 2 alone can't tell you whether the role or the tool list kept the doc
+  unchanged. The control above is what shows it. That's why it's here.
 
 ### A report you can check (items 3 and 4): the agent's instructions
 
@@ -131,8 +139,9 @@ each mistake with the file that proves it. Sessions took 40 s to 3.5 min.
 What to notice:
 
 - **`tools` is an allow-list.** Leave it out and the agent gets every tool. `[]` gives it none.
-  Names are aliases: `read`, `search`, `edit`, `execute`, `agent`, `web`, `todo`. An unknown name is
-  ignored without an error, so a typo silently gives the agent *fewer* tools, never more.
+  Names are aliases: `read`, `search`, `edit`, `execute`, `agent`, `web`, `todo`. The CLI ignores an
+  unknown name without an error (VS Code underlines it in the editor), so a typo gives the agent
+  *fewer* tools, never more.
 - **A role, not a mode.** You pick the agent for the task. The default agent is still there for the
   fix: give it the report.
 
@@ -157,7 +166,7 @@ That's Step 0's planted lint page, and the report is right.
 | 1 | The final message, or the `git diff` of `docs/architecture.md`, against the [drift key](../facilitator/step03-drift-key.md): at least 5 of 7 |
 | 2 | `git status --short` prints nothing |
 | 3 | The final message has `## Wrong`, `## Missing` and `Total: N` |
-| 4 | Every bullet under Wrong and Missing has a path in backticks that exists; N equals the number of bullets |
+| 4 | Every item under Wrong and Missing names a file or folder under `src/` or `tests/` that exists (the doc itself doesn't count); N equals the number of items. It checks the path exists, not that it backs the claim: that's your spot-check |
 
 There's no reference patch: the right result is a report and an unchanged repo. The calibration
 report is in `.lab/scripts/steps/step03.py` (`REPORT`).
@@ -166,7 +175,8 @@ report is in `.lab/scripts/steps/step03.py` (`REPORT`).
 
 - **Wrong agent.** The After must run *as* `docs-reviewer`. In VS Code, pick it in the agent picker
   before sending the prompt. In the CLI, `--agent docs-reviewer`. Mentioning it in the prompt isn't the same.
-- **Old session.** Agents are discovered at session start; start a new one.
+- **Old session.** The CLI finds agents at session start; start a new one. (VS Code usually picks a new
+  `.agent.md` up straight away; reload the window if it isn't in the picker.)
 - **Not installed.** `./lab list` shows `[x] 03  docs-reviewer`, and `.github/agents/docs-reviewer.agent.md` exists.
 - **It edited anyway.** Check the frontmatter: is `tools` there, and is the YAML valid? A broken
   frontmatter means the agent doesn't load at all.
@@ -177,10 +187,10 @@ report is in `.lab/scripts/steps/step03.py` (`REPORT`).
    matches the code: edit the file." It can't. Then switch to the default agent and paste the report:
    "Apply this report to docs/architecture.md." That's the hand-off: one role finds, another changes.
 2. **Delete the tool list.** Remove the `tools:` line, start a new session and ask it to fix the doc.
-   With all tools it may edit, even though rule 4 still says "don't". That's the difference
-   between asking and enforcing.
+   With all tools it may edit, even though rule 4 still says "don't": in our control it did, 2 runs in 3.
+   That's the difference between asking and enforcing.
 3. **Write the rule as a request.** Add "Don't change any files." to the Before prompt. In our two
-   probe runs on the small model it held: nothing changed. A request usually works, until a long session,
+   probe runs on `gpt-5.6-luna` it held: nothing changed. A request usually works, until a long session,
    a conflicting instruction or another model makes it not. You find out afterwards, from `git status`.
    A tool list doesn't depend on any of that, and it holds for every prompt, not just the one that said so.
 
@@ -189,7 +199,8 @@ report is in `.lab/scripts/steps/step03.py` (`REPORT`).
 - [ ] Before/After by hand in VS Code (Steve), plus the VS Code check below
 - [x] **Validated with the harness** (Copilot CLI 1.0.112, 17 Nov 2026), `gpt-5.6-luna` in **both** arms,
   3 runs each, no flips: Before **1/4, 1/4, 1/4**; After **4/4, 4/4, 4/4**. Every After used only read and
-  search tools. A probe that told the reviewer to edit the file changed nothing; two probes of the
+  search tools. Control: told to edit the file, the shipped agent changed nothing (2 probes, one pushed to
+  `sed -i`); without its `tools:` line it edited in 2 of 3. Two probes of the
   default agent with "Don't change any files." added to the prompt also changed nothing (so the request
   alone holds for a short, direct prompt: the step's point is that the tool list doesn't need it to). First design held
   (v1). Details in `.lab/validation/NOTES.md`. Scorer: `.lab/scripts/steps/step03.py`.
