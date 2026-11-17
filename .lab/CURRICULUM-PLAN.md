@@ -191,3 +191,33 @@ After               Nexus courses: Brownfield, Agent patterns, AI FinOps
 3. **Agent-CLI lesson:** in the IaC track (recommended), or a core step 9?
 4. **Pre-work:** make Tailspin VS Code *required* (lets us skip basics), or *recommended* (we keep a 5-minute recap in step 1)?
 5. **Python repo:** freeze as reference (recommended), or keep maintaining both?
+
+---
+
+## 8. Open questions from outside research (18 Nov 2026)
+
+A third-party research pass on hooks, MCP and sub-agents raised these. Each one needs measuring on the
+CLI version we validate against (macOS and Windows) before the lab states it. Don't quote the research.
+
+1. **Hook failure semantics.** The research claims only exit code 2 (or a JSON `deny`) blocks, and other
+   non-zero exits (a crash, exit 1) let the tool call through. Our plan assumed command errors deny and only
+   timeouts fail open. Test exit 0, 1, 2, a crash, invalid JSON and a timeout, in the CLI and in VS Code,
+   and put the measured table in the Step 6 walkthrough.
+2. **Routing around a guard.** Test our Step 6 guard against an agent with a shell: an inline interpreter
+   (`python -c`, `pwsh -Command`), path tricks (`../`, a symlink), and the file-read or edit tool instead of
+   the shell. Record what gets through; that's the "limits" section, with evidence.
+3. **Where hooks are read from.** Confirm whether the Copilot CLI reads hook blocks from `.claude/settings.json`
+   (the research says yes; the reference we checked lists `.github/hooks/*.json` and
+   `.github/copilot/settings(.local).json`). Matters for "agent config files are executable code" and for
+   which files `CODEOWNERS` should protect.
+4. **Policy hooks** (confirmed in the hooks reference: machine-wide, load first, ignore `disableAllHooks`,
+   CLI only). Candidate for one slide in Step 6: repo hooks for project quality, policy hooks for security.
+   Check whether VS Code has an equivalent for managed machines.
+
+Ideas from the same research, for later (not scheduled):
+
+- **LSP for the CLI** (`.github/lsp.json` in the repo): a small optional exercise, if a C# language server can
+  be installed on a locked-down machine.
+- **"Spot the poisoned MCP tool"**: an optional MCP track with a tiny C# stdio server (no Node or Docker),
+  one honest tool and one with an injected instruction in its description.
+- **A blind reviewer sub-agent** (one that hasn't seen the conversation) as a Try in Step 3.
