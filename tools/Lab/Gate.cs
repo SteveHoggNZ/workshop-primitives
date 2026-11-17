@@ -12,6 +12,7 @@ namespace Lab;
 ///   - no new suppressions (#pragma warning disable, [SuppressMessage], NoWarn, a rule turned off in .editorconfig)
 ///   - the bar itself untouched (the baseline file, .editorconfig files, Directory.Build.props)
 ///   - dotnet test passes
+///   - dotnet format whitespace --verify-no-changes (the whole solution)
 /// Lint and tests run in parallel. Nothing changed under src/ or tests/: it passes at once.
 /// Output: nothing to let the agent stop, or {"decision":"block","reason":...} to send it back.
 /// </summary>
@@ -33,6 +34,7 @@ internal static partial class Gate
         var dll = typeof(Gate).Assembly.Location;
         var lintTask = Task.Run(() => Proc.Run("dotnet", [dll, "lint", "--json"], timeoutMs: 150_000));
         var testTask = Task.Run(() => Proc.Run("dotnet", ["test", "-nologo", "-tl:off", "-v:q"], timeoutMs: 150_000));
+        var formatTask = Task.Run(() => Proc.Run("dotnet", ["format", "whitespace", "TasksLab.slnx", "--verify-no-changes", "-v", "q"], timeoutMs: 150_000));
 
         var moved = changes.Where(p => Bar.Contains(p)).ToList();
         if (moved.Count > 0)
@@ -75,6 +77,14 @@ internal static partial class Gate
             problems.Add("dotnet test fails: " + string.Join(" | ", failed.Select(l => l.Trim())));
         }
 
+        var format = formatTask.Result;
+        if (format.ExitCode != 0)
+        {
+            var files = FormatFile().Matches(format.Output).Select(m => Repo.Rel(m.Groups[1].Value)).Distinct().Take(8);
+            problems.Add("Format: not formatted (old files count too): " + string.Join(", ", files) +
+                         ". Run `dotnet format whitespace TasksLab.slnx` and check the diff.");
+        }
+
         if (problems.Count == 0)
         {
             return 0;
@@ -109,6 +119,9 @@ internal static partial class Gate
             }
         }
     }
+
+    [GeneratedRegex(@"^\s*(.+?\.cs)\(\d+,\d+\): error WHITESPACE", RegexOptions.Multiline)]
+    private static partial Regex FormatFile();
 
     [GeneratedRegex(@"#pragma\s+warning\s+disable|SuppressMessage|<NoWarn>|dotnet_diagnostic\.\w+\.severity\s*=\s*(none|silent|suggestion)|#nullable\s+disable", RegexOptions.IgnoreCase)]
     private static partial Regex Suppression();
