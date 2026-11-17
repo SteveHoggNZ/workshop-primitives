@@ -13,6 +13,7 @@ instructions, skills, custom agents, hooks, quality gates and spec-driven develo
 
 ```bash
 ./lab doctor                          # Windows: lab doctor
+./lab warm                            # one-off: first build and the skill scripts' packages
 dotnet test
 dotnet run --project src/Tasks.App    # then open the URL it prints
 ./lab lint
@@ -34,6 +35,8 @@ dotnet run --project src/Tasks.App    # then open the URL it prints
 | 2 | A skill with a tested script, and a prompt file |
 | 3 | A custom agent with its own tool list |
 | 4 | A skill backed by a lab command |
+| 5 | A skill with a script, for a cheaper model |
+| 6 | Permissions, then hooks |
 
 Each step: run the Before prompt in a new agent session, `./lab reset`, `./lab apply N`, read what
 was installed, then run the same prompt in another new session and compare.

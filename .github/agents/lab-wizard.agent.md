@@ -58,6 +58,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
   in the CLI), not the default agent. Score it from `git status`, `git diff` and the pasted final message.
 - **Step 4** items 3 and 4 depend on the order of commands in the session, so read them with the
   session skill's script; item 5 is in the final message.
+- **Steps 5 and 6** are scored mostly from the session (the order of commands, and the final message),
+  plus `git status` for Step 6's protected file.
 
 ## Rules
 

@@ -96,6 +96,9 @@ def prepare(step, phase, model, tag):
     shutil.rmtree(run / ".lab")
     shutil.rmtree(run / ".lab-bin", ignore_errors=True)
     sh(["git", *GIT_ID, "commit", "-qam", "lab: remove facilitator files"], run)
+    # Build the lab tool now, as an attendee's repo has it: hooks call ./lab, and two first calls at once would
+    # both try to build it (found in Step 6: a view denied with "hook errored").
+    sh(["./lab", "help"], run)
     mod = load_scorer(step)
     if hasattr(mod, "setup"):
         mod.setup(run)
