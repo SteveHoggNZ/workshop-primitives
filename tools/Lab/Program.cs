@@ -17,6 +17,7 @@ try
         "tdd" => Tdd.Run(rest),
         "hook" => Hook.Run(rest),
         "ratchet" => Ratchet(rest),
+        "scenario" => Scenario(rest),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command),
     };
@@ -37,6 +38,7 @@ static int Help()
           lint [--json]          Build the app and count lint findings against docs/lint-baseline.md.
           lint --check           Same, but exit 1 if the count is above the baseline.
           ratchet [N]            Lower the lint baseline (by one, or to N) and commit it.
+          scenario N             Set up step N's starting situation, as a commit (Step 7).
 
           list                   Show the steps and which are installed.
           apply N [--tools T]    Install step N's example as its own commit. T: claude,codex adapters.
@@ -70,6 +72,35 @@ static int Ratchet(string[] args)
     File.WriteAllText(file, text.Remove(match.Index, match.Length).Insert(match.Index, $"Total: {target}"));
     Git.Commit($"lab: lint baseline lowered to {target}", ["docs/lint-baseline.md"]);
     Console.WriteLine($"Lint baseline lowered from {current} to {target}, committed. ./lab lint now compares against {target}.");
+    return 0;
+}
+
+static int Scenario(string[] args)
+{
+    // A step's starting situation (.lab/scenarios/stepNN/), committed so ./lab reset keeps it. Step 7: the team just
+    // lowered the lint baseline, and someone left a half-finished change on main.
+    var n = args.Length > 0 && int.TryParse(args[0], out var v) ? v : throw new LabException("Usage: ./lab scenario N");
+    var dir = Path.Combine(Repo.Root, ".lab", "scenarios", $"step{n:00}");
+    if (!Directory.Exists(dir))
+    {
+        throw new LabException($"Step {n} has no scenario.");
+    }
+
+    var files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Select(f => Path.GetRelativePath(dir, f).Replace('\\', '/')).ToList();
+    foreach (var rel in files)
+    {
+        var target = Path.Combine(Repo.Root, rel);
+        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+        File.Copy(Path.Combine(dir, rel), target, overwrite: true);
+    }
+
+    Git.Commit($"lab: step{n:00} scenario", files);
+    Console.WriteLine($"Step {n} scenario committed ({files.Count} file(s)):");
+    foreach (var f in files)
+    {
+        Console.WriteLine($"  {f}");
+    }
+
     return 0;
 }
 

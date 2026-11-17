@@ -23,7 +23,7 @@ internal static partial class Gate
     {
         _ = Console.In.ReadToEnd(); // the agentStop event; nothing in it changes the checks
         var changes = Git.Status().Select(c => c.Path).ToList();
-        if (!changes.Any(p => p.StartsWith("src/", StringComparison.Ordinal) || p.StartsWith("tests/", StringComparison.Ordinal)))
+        if (!changes.Any(p => p.StartsWith("src/", StringComparison.Ordinal) || p.StartsWith("tests/", StringComparison.Ordinal) || Bar.Contains(p)))
         {
             return 0;
         }
@@ -31,8 +31,8 @@ internal static partial class Gate
         var sw = Stopwatch.StartNew();
         var problems = new List<string>();
         var dll = typeof(Gate).Assembly.Location;
-        var lintTask = Task.Run(() => Proc.Run("dotnet", [dll, "lint", "--json"], timeoutMs: 300_000));
-        var testTask = Task.Run(() => Proc.Run("dotnet", ["test", "-nologo", "-tl:off", "-v:q"], timeoutMs: 300_000));
+        var lintTask = Task.Run(() => Proc.Run("dotnet", [dll, "lint", "--json"], timeoutMs: 150_000));
+        var testTask = Task.Run(() => Proc.Run("dotnet", ["test", "-nologo", "-tl:off", "-v:q"], timeoutMs: 150_000));
 
         var moved = changes.Where(p => Bar.Contains(p)).ToList();
         if (moved.Count > 0)
