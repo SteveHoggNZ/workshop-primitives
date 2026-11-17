@@ -7,6 +7,11 @@ by reading it; after, it can read deterministic diagnostics that a tool decided.
 
 Every later step uses the same loop, so this is also the practice run.
 
+**Use VS Code for this step.** Copilot in VS Code reads the Problems panel, so installing the lint
+rules changes what it sees. The Copilot CLI only sees warnings if it happens to build or lint, and for
+this question it usually doesn't (see "For us" below). Step 1 fixes that for every tool by telling
+the agent to run `./lab lint`.
+
 ## Part A: get ready
 
 1. **Check the machine.** From the repo root:
@@ -222,7 +227,10 @@ Verified on the Mac (SDK 10.0.102, macOS arm64, 17 Nov 2026):
 - [x] `./lab doctor` all green; `./lab lint --json` and `--check` behave
 - [x] VS Code Problems panel shows the same six, after a reload (Steve, VS Code Insiders)
 - [x] Before/After by hand in VS Code: the Before didn't find the lint findings, the After did (Steve)
-- [ ] Before/After validated with the harness: strong model Before, small model After, 3 runs each
+- [x] **Decided: VS Code only.** Harness probe in the Copilot CLI (1.0.112, 17 Nov): Before (gpt-6.1-sol) 3/5,
+  After (gpt-5.6-luna) 1/5. The CLI agent answered by reading in both runs; installing the rules didn't change
+  what it did. A strong model also spots most of these findings by reading alone. One After run (r1) is not
+  counted: the harness had pre-built the clone, so the agent's `dotnet build` printed `0 Warning(s)`.
 - [ ] Same count on SDK 11 and on Windows (spike S3, second half)
 - [ ] An SDK 9 machine gets a readable refusal (spike S1, second half)
 - [x] `./lab apply 0` / `reset` / `goto` / `list` replace the manual `cp` (tested in a throwaway clone)
@@ -241,5 +249,7 @@ Found while building it (goes into BUILDING-LABS later):
 - **No time-zone abbreviations in .NET.** `TimeZoneInfo` gives names like "New Zealand Standard Time",
   not `NZDT`. Step 1's zone-label rule needs restating, for example as the offset (`10:00 +13:00`), the
   zone ID, or a small lookup we ship. Decide before building Step 1.
-- **Scoring item 5 needs the transcript.** The CLI harness can score it from `--share`; in VS Code it's
-  by eye.
+- **Scoring item 5 needs the transcript**, so in VS Code it's by eye.
+- **An incremental `dotnet build` prints no warnings for code that's already compiled.** An agent that
+  "checks" with `dotnet build` after the code was built sees `0 Warning(s)` and reports it clean.
+  `./lab lint` always rebuilds. (Changing `.editorconfig` does force a recompile.)

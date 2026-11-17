@@ -111,6 +111,8 @@ Nothing in `src/` shows any of these, so there's nothing to copy.
 
 - **Where it applies:** `./lab lint` prints `Total: 6 (baseline 6)`, the same as the Problems panel (Step 0).
 - **Typical Before:** `dotnet test` passes and the agent stops. Nothing asks for a lint report.
+- **Why `./lab lint` and not `dotnet build`:** an incremental build prints no warnings for code that's
+  already compiled, so "I built it, 0 warnings" can be false. `./lab lint` always rebuilds.
 - **Closing rule:** [run `./lab lint` and quote its `Total:` line](../examples/step01-instructions/AGENTS.md#L30).
 
 ### The template conventions (item 6): the scoped rule
@@ -182,5 +184,9 @@ The reference solution is [.lab/solutions/step01.patch](../solutions/step01.patc
 ## For us
 
 - [ ] Before/After by hand in VS Code (Steve)
-- [ ] Harness: strong-model Before, small-model After, 3 runs each; scorer `.lab/scripts/steps/step01`
+- [x] **Validated with the harness** (Copilot CLI 1.0.112, 17 Nov 2026), 2 runs per arm, no flips:
+  Before (gpt-6.1-sol) **1/6, 1/6**; After (gpt-5.6-luna) **6/6, 6/6**. Both Befores passed only item 1
+  (the code teaches the service and clock) and missed every team decision. Scorer:
+  `.lab/scripts/steps/step01.py` with hidden checks `.lab/scripts/checks/LabCheck01.cs`.
+- [x] Scorer calibrated: reference solution 6/6, untouched clone 0/6
 - [x] Reference solution passes the tests and leaves lint at 6; `goto 2 --solutions` applies it
