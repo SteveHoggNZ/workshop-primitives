@@ -6,4 +6,5 @@ obj/
 TestResults/
 .lab/runs/
 .lab/homes/
+.lab/.lint/
 .DS_Store

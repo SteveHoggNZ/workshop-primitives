@@ -6,6 +6,7 @@ namespace Lab;
 /// <summary>
 /// Builds the app from scratch and counts its warnings: the compiler's nullable warnings plus the
 /// analyzer rules turned on in src/.editorconfig. The VS Code Problems panel shows the same set.
+/// It builds into its own folder (.lab/.lint), so it can't clash with a dotnet test or IDE build running at the same time.
 /// </summary>
 internal static partial class Lint
 {
@@ -13,6 +14,7 @@ internal static partial class Lint
 
     private static readonly string Project = Path.Combine("src", "Tasks.App", "Tasks.App.csproj");
     private static readonly string BaselineFile = Path.Combine("docs", "lint-baseline.md");
+    private static readonly string ArtifactsPath = Path.Combine(Repo.Root, ".lab", ".lint");
 
     public static int Run(string[] args)
     {
@@ -21,7 +23,7 @@ internal static partial class Lint
 
         var build = Proc.Run(
             "dotnet",
-            ["build", Project, "--no-incremental", "-nologo", "-tl:off", "-v:m", "-clp:NoSummary",
+            ["build", Project, "--no-incremental", "--artifacts-path", ArtifactsPath, "-nologo", "-tl:off", "-v:m", "-clp:NoSummary",
              "-p:TreatWarningsAsErrors=false"],
             timeoutMs: 600_000);
 
