@@ -95,7 +95,7 @@ internal static partial class Hook
     /// <summary>The protected path this call would change, or null.</summary>
     private static string? Touches(string tool, JsonNode? args, string cwd)
     {
-        var shell = tool is "bash" or "shell" or "powershell" or "Bash" or "PowerShell";
+        var shell = IsShell(tool);
         if (shell)
         {
             var command = (string?)args?["command"] ?? "";
@@ -133,7 +133,7 @@ internal static partial class Hook
     /// <summary>A write to one of the files that set the lint bar (see Gate.Bar), or null.</summary>
     private static string? TouchesBar(string tool, JsonNode? args, string cwd)
     {
-        var shell = tool is "bash" or "shell" or "powershell" or "Bash" or "PowerShell";
+        var shell = IsShell(tool);
         if (shell)
         {
             var c = ((string?)args?["command"] ?? "").Replace('\\', '/');
@@ -168,7 +168,10 @@ internal static partial class Hook
     }
 
     private static bool IsProtected(string rel) =>
-        rel.StartsWith(Protected, StringComparison.Ordinal) || rel.Contains("/" + Protected, StringComparison.Ordinal);
+        rel.StartsWith(Protected, StringComparison.OrdinalIgnoreCase) || rel.Contains("/" + Protected, StringComparison.OrdinalIgnoreCase);
+
+    // Copilot CLI: bash, powershell. VS Code: run_in_terminal. Claude-style payloads: Bash, PowerShell.
+    private static bool IsShell(string tool) => tool is "bash" or "shell" or "powershell" or "Bash" or "PowerShell" or "run_in_terminal";
 
     private static void Collect(JsonNode? node, List<string> into)
     {
@@ -203,7 +206,7 @@ internal static partial class Hook
             return null;
         }
 
-        return ShellWrite().IsMatch(c) ? "infra/prod/ (a shell command that writes there)" : null;
+        return ShellWrite().IsMatch(c) ? "infra/prod/main.tf (or another file there, from the shell)" : null;
     }
 
     private static string? Rel(string path, string cwd)
@@ -236,13 +239,15 @@ internal static partial class Hook
             ["permissionDecisionReason"] = reason,
         }));
 
-    [GeneratedRegex(@"edit|write|create|patch|str_replace|insert|delete|remove|move|rename|notebook", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"edit|write|create|patch|replace|insert|delete|remove|move|rename|notebook", RegexOptions.IgnoreCase)]
     private static partial Regex WriteTool();
 
     [GeneratedRegex(@"\*\*\* (?:Update|Add|Delete) File: ([^\n]+)")]
     private static partial Regex PatchFile();
 
-    // Writes: sed -i, perl -pi, redirects, tee, mv/cp/rm/touch, python/node one-liners, PowerShell writes, terraform fmt.
-    [GeneratedRegex(@"sed\s+-i|perl\s+-\S*i|>\s*\S*prod|\btee\b|\b(mv|cp|rm|touch|truncate|dd)\b|python3?\s+-|node\s+-e|Set-Content|Add-Content|Out-File|WriteAllText|New-Item|Remove-Item|Copy-Item|Move-Item|terraform\s+fmt|\bed\b|awk\s+-i")]
+    // Writes that name infra/prod as their target: sed -i / perl -pi on it, a redirect or tee into it, mv/cp/rm/touch
+    // naming it, PowerShell writes, python/node one-liners that open it for writing, terraform fmt there. Reads
+    // (cat, git diff, a redirect to /tmp) don't match. It's still pattern matching on the command line: see Step 6.
+    [GeneratedRegex(@"(sed|perl)\s+-\S*i[^|;&]*infra/prod|>>?\s*\S*infra/prod|\btee\s+(-a\s+)?\S*infra/prod|\b(mv|cp|rm|touch|truncate)\b[^|;&]*infra/prod|(Set-Content|Add-Content|Out-File|New-Item|Remove-Item|Copy-Item|Move-Item)[^|;&]*infra/prod|WriteAllText[^|;&]*infra/prod|(python3?|node)\b[^|;&]*infra/prod[^|;&]*['""](w|a|r\+)['""]|(python3?|node)\b[^|;&]*(write|writeFile)[^|;&]*infra/prod|(cd\s+\S*infra/prod\S*\s*(&&|;)\s*)(sed\s+-\S*i|perl\s+-\S*i|terraform\s+fmt|echo[^|;&]*>|tee\b)|terraform\s+fmt[^|;&]*infra/prod", RegexOptions.IgnoreCase)]
     private static partial Regex ShellWrite();
 }

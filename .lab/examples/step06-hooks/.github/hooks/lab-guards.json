@@ -5,7 +5,7 @@
       {
         "type": "command",
         "bash": "./lab hook guard",
-        "powershell": ".\\lab.cmd hook guard",
+        "powershell": "dotnet .lab-bin/Lab.dll hook guard",
         "timeoutSec": 15
       }
     ]

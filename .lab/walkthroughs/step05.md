@@ -12,7 +12,9 @@ machine (it downloads the profiler's packages; see Timing). Check with:
 
 You should see an `x` next to steps 00 to 04. If not, run `./lab goto 5`. Then open `/Bulk`
 (`dotnet run --project src/Tasks.App`), click **Generate 10,000 sample tasks**, and search for
-`sample task 12`: each search takes about a second.
+`sample task 12`: each search takes about a second (more under `dotnet run` on a busy machine: the Befores measured
+about 3 s). **Stop the app (Ctrl+C) before the Before run**: on Windows a running app locks its DLL, and the agent's
+build fails.
 
 1. **Before.** Start a new agent session (don't install anything yet) and give it this prompt:
 
@@ -77,8 +79,9 @@ The bug is visible to a careful reader: 120 `Regex` objects per title. Every Bef
 reading, started the app, and timed `curl` before and after. That's a real measurement, and it's why
 item 2 is a baseline. But one Before timed the wrong request (2.8 ms, not the slow search) and
 reported "15% faster" for a 30× fix. Every After ran `profile.cs` first, saw
-`99.8%  Tasks.App.Services.TextHelpers.Normalise`, fixed that method, ran the same command again, and
-pasted both. Sessions: Before about 2 min (starting a server, polling it), After 1.5–3.5 min.
+`99.9%  Tasks.App.Services.TextHelpers.Normalise`, fixed that method, ran the same command again, and
+pasted both. Sessions: Before about 2 min (starting a server, polling it), After about 3–3.4 min: slower by
+the clock (each profile run is 10–20 s), cheaper in credits.
 
 ## What the code already teaches
 
@@ -98,12 +101,13 @@ pasted both. Sessions: Before about 2 min (starting a server, polling it), After
   the app in-process (`WebApplicationFactory`, like the tests), runs the setup request, times the page,
   and **samples the CPU** with EventPipe, the runtime's own tracing, by opening a session on itself.
   No server, no port, no `dotnet-trace` install (often blocked on corporate machines).
-- **Read the "own time" list.** The deepest app method on the stack in each sample. Here 99.8% of
-  samples were in `TextHelpers.Normalise`.
+- **Read the "own time" list.** The deepest app method on the stack in each sample. In our runs 99.9% of
+  samples were in `TextHelpers.Normalise`. The shares are of samples in app code, so after the fix the
+  same method can still be on top with fewer samples: compare the latency.
 
 ### Say where the time went (item 4): the report rule
 
-- **Closing rule:** [Report](../examples/step05-diagnostics/.agents/skills/dotnet-diagnostics/SKILL.md#L38-L41):
+- **Closing rule:** [Report](../examples/step05-diagnostics/.agents/skills/dotnet-diagnostics/SKILL.md#L38-L42):
   paste both `latency ms:` lines and the top "own time" line from each run, unchanged. As in Steps 2
   and 4, it says why: the reader should see the measurement, not take your word for it.
 
@@ -117,7 +121,7 @@ more turns than one script). Same model, less spent, and the answer has the evid
 
 ## Reading the files
 
-[SKILL.md](../examples/step05-diagnostics/.agents/skills/dotnet-diagnostics/SKILL.md) (41 lines):
+[SKILL.md](../examples/step05-diagnostics/.agents/skills/dotnet-diagnostics/SKILL.md) (42 lines):
 
 - [The description](../examples/step05-diagnostics/.agents/skills/dotnet-diagnostics/SKILL.md#L3): use it when
   something is slow, laggy or CPU-heavy, "or when asked how much faster a change made it". **Not** for

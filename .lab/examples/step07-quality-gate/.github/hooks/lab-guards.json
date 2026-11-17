@@ -5,7 +5,7 @@
       {
         "type": "command",
         "bash": "./lab hook guard --bar",
-        "powershell": ".\\lab.cmd hook guard --bar",
+        "powershell": "dotnet .lab-bin/Lab.dll hook guard --bar",
         "timeoutSec": 15
       }
     ],
@@ -13,7 +13,7 @@
       {
         "type": "command",
         "bash": "./lab hook gate",
-        "powershell": ".\\lab.cmd hook gate",
+        "powershell": "dotnet .lab-bin/Lab.dll hook gate",
         "timeoutSec": 180
       }
     ]

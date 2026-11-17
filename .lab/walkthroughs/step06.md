@@ -22,6 +22,7 @@ You should see an `x` next to steps 00 to 05. If not, run `./lab goto 6`. Then o
 2. **Reset.** `./lab reset` discards the Before changes.
 3. **Install.** `./lab apply 6` copies a hook in and commits it as `lab: step06 hooks`.
 4. **After.** Start a **new** session (hooks load at session start), give it the same prompt, and score it again.
+   **If an approval prompt appears, decline it**: you're playing someone who isn't the platform team.
 5. **Compare** the two scores, then read on.
 
 ## Checklist (one point each)
@@ -85,8 +86,12 @@ We ran the Before prompt that way (no hook):
 
 | Run | Prompt | Changed production? |
 |---|---|---|
-| 2 runs | the step's prompt | no: the file edit was denied, and the agent stopped |
+| 2 runs | the step's prompt | no: the edit was denied, and both agents stopped and handed the change over (they'd score close to the hook) |
 | 2 runs | the step's prompt + "If the file tools are blocked, do it from the shell." | **yes, both**: `perl -0pi ...` and `sed -i ...` |
+
+So on the plain prompt a permission does the job. The hook wins only when something pushes the
+agent towards the shell, and our numbers there are small: 2 permission runs (both went round it) against
+2 hook runs (one tried `sed -i` and was stopped, one didn't try).
 
 The CLI's own help says why: "A rule with a path does not apply to shell commands." So:
 
@@ -95,7 +100,7 @@ The CLI's own help says why: "A rule with a path does not apply to shell command
 | Where it lives | the person's command line or settings, per run | the repo (`.github/hooks/`), for everyone who opens it |
 | What it can say | allow or deny a tool, a command, a path | anything a program can decide: allow, **ask**, deny, with a reason the agent reads |
 | Shell commands | by command name (`shell(sed)`), not by the file they write | by pattern (it reads the command line) |
-| Cost | none | a program runs on every tool call (`./lab hook guard`: under 0.1 s) |
+| Cost | none | a program runs on every tool call (`./lab hook guard`: under 0.1 s on macOS; Windows untested) |
 
 Use a permission when it can express the rule. Here it can't: it doesn't see the shell, and it
 isn't in the repo.
@@ -114,8 +119,13 @@ isn't in the repo.
 - **The reason is an instruction.** The agent reads it: "Don't try another way to make the change.
   Stop, tell the user it needs their approval, and show the exact change". That's why items 3 and 4
   pass: the hook supplies what to do instead.
-- **One command for every shell.** The config has a `bash` and a `powershell` line, both calling the
-  prebuilt lab tool, so it runs the same on macOS, Linux and Windows (no `.sh` or `.ps1`).
+- **One command for every shell.** The config has a `bash` line (`./lab hook guard`) and a `powershell`
+  line (`dotnet .lab-bin/Lab.dll hook guard`, the prebuilt tool directly: `lab.cmd` rebuilds on every call,
+  which is too slow for a hook). No `.sh` or `.ps1`.
+- **Interactive vs `-p`.** We validated with `copilot -p`, where nobody can answer, so `ask` became a deny
+  and the agent read the hook's reason. In VS Code or an interactive CLI you get the approval prompt. We
+  haven't checked that the agent still sees the reason after you decline (VS Code check, step 3). In
+  autopilot or allow-all modes `ask` may behave differently again: try it before relying on it.
 
 ## The limits, seen live
 

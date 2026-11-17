@@ -15,8 +15,7 @@ The script hosts the app in-process (no server, no port, no installs), runs the 
 times the page `--repeat` times, and samples where the CPU time goes:
 
 ```bash
-dotnet run --no-cache .agents/skills/dotnet-diagnostics/scripts/profile.cs -- \
-    --setup "POST /Bulk?handler=Generate" --path "/Bulk?q=sample task 12" --repeat 3
+dotnet run --no-cache .agents/skills/dotnet-diagnostics/scripts/profile.cs -- --setup "POST /Bulk?handler=Generate" --path "/Bulk?q=sample task 12" --repeat 3
 ```
 
 - `--setup` runs once first (repeat it for several); `--path` is the page you time. A request without
@@ -33,7 +32,8 @@ dotnet run --no-cache .agents/skills/dotnet-diagnostics/scripts/profile.cs -- \
 
 ## Measure again
 
-- Run **the same command** again. The top row should have moved, and the latency should have dropped.
+- Run **the same command** again. The latency should have dropped. (The shares are of the samples in app code, so the
+  same method can still be on top: compare the latency and the number of samples.)
 
 ## Report
 
