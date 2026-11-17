@@ -1,0 +1,115 @@
+diff --git a/docs/agent-commands.md b/docs/agent-commands.md
+index 8a6fcdd..09d266a 100644
+--- a/docs/agent-commands.md
++++ b/docs/agent-commands.md
+@@ -8,3 +8,4 @@ What users can type at `/Agent`. Keep this table in step with `src/Tasks.App/Age
+ | `list` | `list_tasks` | no | `list` |
+ | `done <id>` | `complete_task` | no | `done seed3` |
+ | `delete <id>` | `delete_task` | yes | `delete seed3` |
++| `clear completed` | `clear_completed` | yes | `clear completed` |
+diff --git a/src/Tasks.App/Agent/AgentIntents.cs b/src/Tasks.App/Agent/AgentIntents.cs
+index 04a0a1b..ab72c1e 100644
+--- a/src/Tasks.App/Agent/AgentIntents.cs
++++ b/src/Tasks.App/Agent/AgentIntents.cs
+@@ -11,6 +11,7 @@ public static class AgentIntents
+         new("list", P(@"^(?:list|show)(?: tasks)?$"), "list_tasks", "list", "list"),
+         new("complete", P(@"^(?:done|complete) (?<id>\S+)$"), "complete_task", "done <id>", "done seed3"),
+         new("delete", P(@"^delete (?<id>\S+)$"), "delete_task", "delete <id>", "delete seed3", Confirm: true),
++        new("clear", P(@"^clear completed$"), "clear_completed", "clear completed", "clear completed", Confirm: true),
+     ];
+ 
+     private static Regex P(string pattern) => new(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+diff --git a/src/Tasks.App/Agent/AgentTools.cs b/src/Tasks.App/Agent/AgentTools.cs
+index b6c6f47..2ba7274 100644
+--- a/src/Tasks.App/Agent/AgentTools.cs
++++ b/src/Tasks.App/Agent/AgentTools.cs
+@@ -14,6 +14,7 @@ public static class AgentTools
+         ["list_tasks"] = ListTasks,
+         ["complete_task"] = CompleteTask,
+         ["delete_task"] = DeleteTask,
++        ["clear_completed"] = ClearCompleted,
+     };
+ 
+     /// <summary>Add a task with the given title.</summary>
+@@ -45,4 +46,11 @@ public static class AgentTools
+         var id = args["id"];
+         return tasks.Delete(id) ? $"Deleted task {id}." : $"There is no task {id}.";
+     }
++
++    /// <summary>Delete every completed task.</summary>
++    public static string ClearCompleted(TaskService tasks, IReadOnlyDictionary<string, string> args)
++    {
++        var count = tasks.DeleteCompleted();
++        return count == 1 ? "Deleted 1 completed task." : $"Deleted {count} completed tasks.";
++    }
+ }
+diff --git a/src/Tasks.App/Data/TaskStore.cs b/src/Tasks.App/Data/TaskStore.cs
+index e98e4f7..cddd971 100644
+--- a/src/Tasks.App/Data/TaskStore.cs
++++ b/src/Tasks.App/Data/TaskStore.cs
+@@ -49,6 +49,14 @@ public sealed class TaskStore
+         }
+     }
+ 
++    public int RemoveAll(Predicate<TaskItem> match)
++    {
++        lock (_gate)
++        {
++            return _items.RemoveAll(match);
++        }
++    }
++
+     public void Clear()
+     {
+         lock (_gate)
+diff --git a/src/Tasks.App/Services/TaskService.cs b/src/Tasks.App/Services/TaskService.cs
+index becc58a..c03499d 100644
+--- a/src/Tasks.App/Services/TaskService.cs
++++ b/src/Tasks.App/Services/TaskService.cs
+@@ -28,6 +28,8 @@ public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQuer
+ 
+     public bool Delete(string id) => store.Remove(id);
+ 
++    public int DeleteCompleted() => store.RemoveAll(t => t.Done);
++
+     public IReadOnlyList<TaskItem> List() => store.All();
+ 
+     public IReadOnlyList<TaskItem> Open() => [.. store.All().Where(t => !t.Done).OrderBy(t => t.CreatedAt)];
+diff --git a/tests/Tasks.App.Tests/AgentTests.cs b/tests/Tasks.App.Tests/AgentTests.cs
+index 35290be..1d79c80 100644
+--- a/tests/Tasks.App.Tests/AgentTests.cs
++++ b/tests/Tasks.App.Tests/AgentTests.cs
+@@ -50,6 +50,33 @@ public class AgentTests
+         Assert.Single(app.Tasks.List());
+     }
+ 
++    [Fact]
++    public void Clear_completed_asks_then_deletes_only_completed()
++    {
++        using var app = new TestApp();
++        var done = app.Tasks.Add("Done");
++        app.Tasks.Add("Open");
++        app.Tasks.Complete(done.Id);
++        var agent = Agent(app);
++
++        Assert.Contains("Type yes to confirm", agent.Handle("clear completed"), StringComparison.Ordinal);
++        Assert.Equal("Deleted 1 completed task.", agent.Handle("yes"));
++        Assert.Equal(new[] { "Open" }, app.Tasks.List().Select(t => t.Title));
++    }
++
++    [Fact]
++    public void Clear_completed_cancelled_by_no()
++    {
++        using var app = new TestApp();
++        app.Tasks.Complete(app.Tasks.Add("Done").Id);
++        var agent = Agent(app);
++
++        agent.Handle("clear completed");
++
++        Assert.Equal("Cancelled.", agent.Handle("no"));
++        Assert.Single(app.Tasks.List());
++    }
++
+     [Fact]
+     public void Unknown_command()
+     {
