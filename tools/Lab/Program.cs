@@ -3,24 +3,41 @@ using Lab;
 var command = args.Length > 0 ? args[0] : "help";
 var rest = args.Skip(1).ToArray();
 
-return command switch
+try
 {
-    "doctor" => Doctor.Run(),
-    "lint" => Lint.Run(rest),
-    "help" or "--help" or "-h" => Help(),
-    _ => Unknown(command),
-};
+    return command switch
+    {
+        "doctor" => Doctor.Run(),
+        "lint" => Lint.Run(rest),
+        "list" or "status" => StepCommands.List(),
+        "apply" => StepCommands.Apply(rest),
+        "reset" => StepCommands.Reset(rest),
+        "goto" => StepCommands.Goto(rest),
+        "help" or "--help" or "-h" => Help(),
+        _ => Unknown(command),
+    };
+}
+catch (LabException ex)
+{
+    Console.Error.WriteLine(ex.Message);
+    return 2;
+}
 
 static int Help()
 {
     Console.WriteLine("""
         Usage: ./lab <command>          (Windows: lab <command>)
 
-          doctor            Check this machine can run the lab, and which steps it can run.
-          lint [--json]     Build the app and count lint findings against docs/lint-baseline.md.
-          lint --check      Same, but exit 1 if the count is above the baseline.
+          doctor                 Check this machine can run the lab, and which steps it can run.
+          lint [--json]          Build the app and count lint findings against docs/lint-baseline.md.
+          lint --check           Same, but exit 1 if the count is above the baseline.
 
-        Coming in later steps: list, reset, apply N, goto N.
+          list                   Show the steps and which are installed.
+          apply N [--tools T]    Install step N's example as its own commit. T: claude,codex adapters.
+          reset [--dry-run]      Throw away uncommitted changes in the lab's folders (a Before or After run).
+          goto N [--solutions]   Catch up: install every step before N (and their reference solutions).
+
+        The loop for each step: Before run, ./lab reset, ./lab apply N, read the files, After run in a new session.
         """);
     return 0;
 }

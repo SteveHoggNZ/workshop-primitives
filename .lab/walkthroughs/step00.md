@@ -41,15 +41,17 @@ Every later step uses the same loop, so this is also the practice run.
    ```
 
    Note what it lists. Score it with the checklist below, but don't paste the checklist into the prompt.
-2. **Install.** Copy the lint configuration in:
+2. **Reset and install.**
 
    ```bash
-   cp -R .lab/examples/step00-lint/. .
+   ./lab reset        # discards anything the Before run changed (here, probably nothing)
+   ./lab apply 0      # installs this step's files as their own commit
    ```
 
-   (`./lab apply 0` will do this once the helper has `apply`.) That adds two files:
+   `apply` adds two files and commits them as `lab: step00 lint`:
    [src/.editorconfig](../examples/step00-lint/src/.editorconfig) (four analyzer rules turned on)
    and [docs/lint-baseline.md](../examples/step00-lint/docs/lint-baseline.md) (`Total: 6`).
+   `./lab list` now shows `[x] 00  lint`.
 3. **Check it took.** Within a few seconds the Problems panel shows **6** warnings, and `./lab lint`
    says `Total: 6 (baseline 6)`. If the panel doesn't update, reload the window.
 4. **After.** Start **another new** chat (the old one keeps what it already concluded) and send the same
@@ -165,6 +167,18 @@ has no findings.
 - [global.json](../../global.json): SDK 10.0.100 or later; newer SDKs allowed
 - [tools/Lab/Doctor.cs](../../tools/Lab/Doctor.cs): what `./lab doctor` checks
 
+## The helper commands
+
+| Command | What it does |
+|---|---|
+| `./lab list` | The steps, which are installed (`x`), and what's next |
+| `./lab reset [--dry-run]` | Throws away uncommitted changes in the lab's folders (`src/`, `tests/`, `docs/`, `.github/`, `AGENTS.md`, ...). Anything else, like your notes or `.vscode/`, is left alone and listed |
+| `./lab apply N [--tools claude,codex]` | Copies step N's example in and commits **only those files** as `lab: stepNN <name>`. Refuses if there are uncommitted changes in the lab's folders, so a Before run can't end up inside the commit |
+| `./lab goto N [--solutions]` | Catch up: installs every step before N, each as its own commit (plus reference solutions, where a step has one) |
+
+To run a step's Before again after installing it, step back with `git reset --hard HEAD~1` (that
+removes the `lab: stepNN` commit).
+
 ## Try
 
 1. **Make it seven.** In [Index.cshtml.cs](../../src/Tasks.App/Pages/Index.cshtml.cs), change
@@ -211,7 +225,7 @@ Verified on the Mac (SDK 10.0.102, macOS arm64, 17 Nov 2026):
 - [ ] Before/After validated with the harness: strong model Before, small model After, 3 runs each
 - [ ] Same count on SDK 11 and on Windows (spike S3, second half)
 - [ ] An SDK 9 machine gets a readable refusal (spike S1, second half)
-- [ ] `./lab apply 0` / `reset` replace the manual `cp`
+- [x] `./lab apply 0` / `reset` / `goto` / `list` replace the manual `cp` (tested in a throwaway clone)
 - [x] Part C tried in VS Code: works as described, including Find All References through `ITaskQueries` (Steve, 17 Nov)
 - [ ] Part C in the Copilot CLI via `.github/lsp.json` (spike S7)
 
