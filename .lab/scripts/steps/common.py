@@ -34,7 +34,7 @@ EDIT_TOOLS = {"apply_patch", "edit", "create", "write", "str_replace", "str_repl
 def calls(ev) -> List[Tuple[int, str, str]]:
     """Tool calls in transcript order: (position, tool name, section text)."""
     out = []
-    for m in re.finditer(r"\n### `([^`]+)`", ev.transcript):
+    for m in re.finditer(r"(?:\A|\n)### `([^`]+)`", ev.transcript):
         end = ev.transcript.find("\n### ", m.end())
         out.append((m.start(), m.group(1), ev.transcript[m.end(): end if end > 0 else None]))
     return out

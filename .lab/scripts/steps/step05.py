@@ -2,9 +2,13 @@
 
 Items (baseline = both arms should pass; lesson = only the primitive supplies it):
   1 baseline  fixed: at least 5x faster than the original code on the same machine, same counts, suite passes
-  2 lesson    profiled before the first edit to src/ (a profiler run, not just a timer)
-  3 lesson    timed before the first src/ edit and again after the last one
-  4 lesson    the before/after numbers in the final message come from runs in the transcript
+  2 baseline  timed before the first src/ edit and again after the last one (the prompt asks how much faster)
+  3 lesson    profiled before the first edit to src/ (a profiler run that says where the time goes, not a timer)
+  4 lesson    the final message shows where the time went: a method with its measured share, from a profiler run
+
+Design v2 (after the pilot): v1 had item 2 as a lesson and item 4 as "the numbers come from runs". The pilot
+Before timed with curl before and after (the prompt asks for it) and reported "~4.0s to ~0.1s": a measurement,
+paraphrased. v2 makes timing a baseline and scores what only a profile gives: where the time went.
 """
 
 import re
@@ -46,8 +50,13 @@ def _src_edits(ev):
 
 
 def _numbers(text):
-    """Latency-like numbers: 1039.6, 33 ms, 1,040ms. Two significant figures at least, so '5x' doesn't count."""
-    return {n.replace(",", "") for n in re.findall(r"(\d[\d,]*\.?\d*)\s?ms", text) if len(n.replace(",", "").replace(".", "")) >= 2}
+    """Latency-like numbers on lines that mention ms ("latency ms: median 1039.6", "33 ms", "1,040ms").
+    At least two digits, so "5x" or a step number doesn't count."""
+    out = set()
+    for line in text.splitlines():
+        if re.search(r"\bms\b|\dms\b|millisecond", line, re.I):
+            out |= {n.replace(",", "") for n in re.findall(r"\d[\d,]*(?:\.\d+)?", line) if len(n.replace(",", "").replace(".", "")) >= 2}
+    return out
 
 
 def primitive_used(ev):
@@ -77,6 +86,7 @@ latency ms: median 32.8, max 40.9
 
 ```text
 before: latency ms: median 1039.6, max 1067.6
+   99.8%  Tasks.App.Services.TextHelpers.Normalise(class System.String)
 after:  latency ms: median 32.8, max 40.9
 ```
 
@@ -94,14 +104,14 @@ def score(ev):
     profiled_first = any(PROFILER.search(cmd) and (first is None or pos < first) for pos, cmd, _ in runs)
     before_after = first is not None and any(pos < first for pos, _, _ in runs) and any(pos > last for pos, _, _ in runs)
     final = final_message(ev)
-    measured = set()
-    for _, cmd, body in runs:
-        measured |= _numbers(body[len(cmd):])
-    reported = _numbers(final) & measured
+    profiled = "\n".join(body for _, cmd, body in runs if PROFILER.search(cmd) or PROFILER.search(body))
+    shares = {m.group(1) for line in final.splitlines() if re.search(r"[A-Z]\w+\.\w+|\w+\(", line)
+              for m in re.finditer(r"(\d{1,3}(?:\.\d)?)\s?%", line)}
+    shown = sorted(x for x in shares if re.search(r"(?<![\d.])" + re.escape(x) + r"\s?%", profiled))
     return [
         ("fixed: 5x faster than the original on this machine, same counts, tests pass", fixed,
          f"{c['results']}; {t['summary']}"),
-        ("profiled before the first edit to src/", profiled_first, f"{len(runs)} timing runs; first src edit @{first}"),
-        ("timed before the first src/ edit and after the last", before_after, f"edits @{first}..{last}"),
-        ("final message's numbers come from measured runs", len(reported) >= 2, f"{sorted(reported)[:4]}"),
+        ("timed before the first src/ edit and after the last", before_after, f"{len(runs)} timing runs; edits @{first}..{last}"),
+        ("profiled before the first edit to src/", profiled_first, f"first src edit @{first}"),
+        ("final message shows where the time went (a method and its measured share)", bool(shown), f"{shown[:3]}"),
     ]
