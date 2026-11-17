@@ -31,6 +31,6 @@
 
 ## Commands
 
-- `dotnet test`
+- `dotnet test` in the terminal: it takes seconds. Don't use the editor's test runner, which rebuilds everything and takes about a minute a run.
 - `dotnet run --project src/Tasks.App`
 - `./lab lint` (Windows: `lab lint`)
