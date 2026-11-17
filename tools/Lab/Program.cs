@@ -15,6 +15,7 @@ try
         "reset" => StepCommands.Reset(rest),
         "goto" => StepCommands.Goto(rest),
         "tdd" => Tdd.Run(rest),
+        "hook" => Hook.Run(rest),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command),
     };

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "./lab hook guard",
+        "powershell": ".\\lab.cmd hook guard",
+        "timeoutSec": 15
+      }
+    ]
+  }
+}
