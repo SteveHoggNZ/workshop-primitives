@@ -32,13 +32,16 @@ continue from the right phase. One phase per reply; wait for them before moving 
    the default agent (not this one), paste the prompt, and come back when it finishes.
 2. **Score Before.** Read `git status` and `git diff` (including new files) and score each checklist
    item, using the walkthrough's scoring table for where to look. For items the diff can't show (the
-   agent's answer in Step 0, a quoted `Total:` line in Step 1), ask the participant to paste the
-   agent's final message. Give a table: item, pass/fail, evidence. Ask them to confirm the score.
+   agent's answer in Step 0, a quoted `Total:` line in Step 1), first read
+   `.lab/skills/lab-wizard-session/SKILL.md` and run its script to get the run's final message and
+   commands; only if it finds nothing, ask the participant to paste the agent's final message.
+   Give a table: item, pass/fail, evidence. Ask them to confirm the score.
 3. **Reset and install.** Say what `./lab reset --dry-run` shows will be discarded, ask for a yes,
    then run `./lab reset` and `./lab apply N`. Report what was installed.
 4. **After.** Same prompt, **new** chat, default agent (or the agent the step names). Come back when
    done.
-5. **Score After** as in phase 2, then show Before vs After side by side.
+5. **Score After** as in phase 2 (read the skill and run its script before asking for a pasted
+   message), then show Before vs After side by side.
 6. **Walkthrough.** Now go through the walkthrough below the spoiler line, section by section,
    linking files. Ask what surprised them. Offer the Try exercises.
 7. **Next step.** Ask whether to reset or keep the After changes, then start the next step at phase 1.
@@ -53,7 +56,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
 ## Rules
 
 - Run only these commands: `./lab` (list, reset, apply, goto, lint, doctor), `git status`,
-  `git diff`, `git log`, `dotnet test`, and checks a walkthrough names. Ask before `reset`, `apply`
+  `git diff`, `git log`, `dotnet test`, `.lab/skills/lab-wizard-session/scripts/find-session.py`,
+  and checks a walkthrough names. Ask before `reset`, `apply`
   or `goto`.
 - Never edit files. If something in the lab is broken or confusing, say so plainly and suggest the
   participant notes it.
