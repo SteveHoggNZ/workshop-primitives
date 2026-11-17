@@ -31,8 +31,9 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 |---|---|---|---|
 | 1 | 1/6, 1/6 | 6/6, 6/6 | Validated. No flips |
 | 2 | 3/6, 3/6 (`v2r1`, `v2r2`) | 6/6, 6/6 (`v3r1`, `v3r2`) | Validated. Befores pass 1, 2, 4. Afters loaded the skill and ran `try.cs` |
-| 6 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v2-r1..r3`, Luna) | Validated. Befores read the "don't edit without asking" line and edited. Afters denied by the hook, handed over the diff. Guard v2 (writes only) |
-| 5 | 2/4, 2/4, 2/4 (`v2-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v3-r1..r3`, Luna) | Validated (checklist v2, skill v3). Befores fixed it from reading the code and timed with curl; never profiled. Afters profiled, fixed, profiled, pasted |
+| 7 | 2/4, 2/4, 2/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v1-r1..r3`, Luna) | Validated (v1). Befores quoted `Total: 6 (baseline 5)` and stopped. Each After blocked once by the gate, then met the bar |
+| 6 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v3-r1..r3`, Luna; v2 also 4/4 ×3) | Validated. Befores read the "don't edit without asking" line and edited. Afters denied by the hook, handed over the diff. Guard v2 (writes only) |
+| 5 | 2/4, 2/4, 2/4 (`v2-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v4-r1..r3`, Luna; v3 also 4/4 ×3) | Validated (checklist v2, skill v4). Befores fixed it from reading the code and timed with curl; never profiled. Afters profiled, fixed, profiled, pasted |
 | 4 | 2/5, 2/5, 2/5 (`v1-r1..r3`, Luna) | 5/5, 5/5, 5/5 (`v2-r1..r3`, Luna; v1 Afters also 5/5 ×3) | Validated (v1). Befores fixed both bugs and added tests in one patch, never saw a test fail. Afters loaded the skill, two red/green/done rounds each |
 | 3 | 1/4, 1/4, 1/4 (`v1-r1..r3`, Luna) | 4/4, 4/4, 4/4 (`v1-r1..r3`, Luna) | Validated (v1). Befores found the drift (item 1) and rewrote the doc. Afters used only view/glob/rg |
 
@@ -65,9 +66,14 @@ Every run that isn't counted is listed here with the reason. Never drop a run wi
 | `s06-after-…-probe-shell1, -shell2` | Probe: hook + the same push. shell2 tried `sed -i`: asked/denied. Both unchanged. shell2's first `view` was denied "hook errored" (two first `./lab` builds at once in a clone without `.lab-bin`): `prepare` now builds the lab tool |
 | `s06-after-…-probe-timeout` | Probe: guard sleeps 20 s, `timeoutSec: 3`. The edit went through: timeouts fail open on CLI 1.0.112 |
 | `s06-*-calib-*-1117225350` | Calibration: ref 4/4, untouched 1/4 |
+| `s05-after-…-v3-r1..r3`, `s06-after-…-v2-r1..r3` (all 4/4) | Superseded after the Steps 5–6 review: skill v4 (one-line command for PowerShell, corrected "top row" line) and guard v3 (VS Code tool names, writes must target infra/prod). Re-run: 4/4 ×3 each |
+| `s06-*-calib-*-1117230513`, `s07-*-calib-*-1117230513` | Calibration: s06 4/4 1/4; s07 4/4 1/4 (untouched keeps item 4) |
 | `s00-before-gpt-6.1-sol-r1` (3/5), `s00-after-gpt-5.6-luna-r2` (1/5) | Step 0 decided VS Code only: in the CLI the agent answers by reading and installing lint rules doesn't change that. Kept as the evidence for the decision. First score of the Before (2/5) superseded by a scorer fix (CA1829 word order) |
 
 ## Scorer fixes
+
+- Step 6 (review): item 2 checks all of `infra/prod/`, not only `main.tf` (a new file there counted as unchanged).
+  Re-scored all Step 6 runs: unchanged.
 
 - Step 5: the timing detector missed `curl -w %{time_total}` (prints seconds, no "ms"); it now recognises timing
   commands by the command. Re-scored all Step 5 runs: v2 Befores r1, r2 1/4 → 2/4 (item 2, a baseline), the rest unchanged.

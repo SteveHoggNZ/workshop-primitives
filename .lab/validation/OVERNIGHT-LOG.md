@@ -158,3 +158,23 @@ Next: Step 3 (read OVERNIGHT.md)
   shell" 2/2 changed prod (perl -0pi, sed -i); hook + same push: sed -i caught; timeout probe (sleep 20 s, timeoutSec 3):
   edit went through (fail-open). Found: two first `./lab` builds at once → "hook errored" → a view denied; `prepare` now
   builds the lab tool. Next: write-up, review, Step 7.
+- **23:00** Steps 5–6 review (cold subagent). Fixed: guard misses VS Code tool names (`replace_string_in_file`,
+  `run_in_terminal`) and flagged reads (`cat … > /tmp`); patterns now need the write target to be infra/prod (13-case
+  table passes); case-insensitive. `lab.cmd` rebuilds every call → hook `powershell` lines call
+  `dotnet .lab-bin/Lab.dll` directly. Skill: one-line command (PowerShell has no `\` continuation); "top row should
+  have moved" was wrong (shares are relative). Walkthroughs: decline the approval prompt; interactive `ask` untested;
+  permissions alone held on the plain prompt (say so); stop the app before Step 5 (Windows DLL lock); numbers. Scorer:
+  Step 6 item 2 covers infra/prod/. Commit `6436381`. Re-runs: Step 5 Afters v4 4/4 ×3, Step 6 Afters v3 4/4 ×3.
+  Not done (proposals for Steve, they'd change Steps 0–1's environment): a root `.ignore` with `.lab/` and VS Code
+  `search.exclude`, so a Before in an attendee's repo can't grep the answers in `.lab/solutions`. Next: Step 7.
+
+### Step 7: quality gate
+
+- **23:04** Lab `1c14b93`: `./lab hook gate` (agentStop: lint --check, no new suppressions, bar files untouched,
+  dotnet test; lint and tests in parallel; fast path when src/ and tests/ unchanged), `guard --bar`, `./lab ratchet`
+  (lowers the baseline as its own commit, since `reset` restores docs/). Gate: block 12 s cold, 4–6 s warm. Design v1:
+  prompt "Add an /Archive page … keep it quick" after the ratchet to 5; items 1 baseline works; 2 lesson lint ≤ baseline;
+  3 lesson final Total ≤ its baseline; 4 baseline no suppressions/bar untouched. Calibration 4/4, 1/4.
+- **23:08** Pilot Before 2/4 (quoted `Total: 6 (baseline 5)`, stopped), After 4/4 (blocked once, fixed Recent to 0).
+- **23:10** r2, r3: Before 2/4, 2/4; After 4/4, 4/4 (each blocked once; gate took 5 s). Gate passes. Before r2 loaded the
+  tdd skill (allowed: "add behaviour"). Next: write-up, review, Step 8.
