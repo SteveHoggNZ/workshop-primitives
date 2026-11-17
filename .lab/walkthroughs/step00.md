@@ -56,6 +56,31 @@ Every later step uses the same loop, so this is also the practice run.
    prompt.
 5. **Compare** the two answers.
 
+## Part C: navigate by meaning (showcase, not scored)
+
+Linting and types let the agent **see** problems. A language server lets it **find its way**: "who
+calls this?" answered by the compiler's understanding of the code, not by matching text. VS Code
+already runs one for C# (the C# extension), so there's nothing to install.
+
+1. **Ask.** In a **new** chat:
+
+   ```text
+   Which code calls TaskService.Recent()? List each call site with its file and line.
+   ```
+
+   Expand the response's tool calls: did it use a text search, or a references/usages lookup?
+2. **Do it both ways yourself.** Search the workspace for `Recent(` (Cmd+Shift+F): six hits. Then open
+   [TaskService.cs](../../src/Tasks.App/Services/TaskService.cs#L33), put the cursor on `Recent` and
+   press **Shift+F12** (Find All References): just the real ones.
+3. **Ask again, naming the tool.** In another new chat, add one line to the same prompt:
+
+   ```text
+   Which code calls TaskService.Recent()? List each call site with its file and line.
+   Use #usages to find references rather than text search.
+   ```
+
+   Same answer? Fewer files read? This one line is the kind of rule Step 1 puts in `AGENTS.md`.
+
 > The rest of this page explains what to look for. Read it after your Before run.
 
 ## Checklist
@@ -87,6 +112,30 @@ decide, and keep the agent's judgement for the rest."**
 
 That's also why the lint count matters later. Step 1 asks the agent to report it, and Step 7 refuses
 to let it go up.
+
+## What Part C shows
+
+The question has a trap: two classes have a `Recent()` method, and one real caller goes through an
+interface.
+
+| Text search hit for `Recent(` | Calls `TaskService.Recent()`? |
+|---|---|
+| [TaskServiceTests.cs L26](../../tests/Tasks.App.Tests/TaskServiceTests.cs#L26) `app.Tasks.Recent()` | **Yes** |
+| [Program.cs L35](../../src/Tasks.App/Program.cs#L35) `queries.Recent()` | **Yes**, through `ITaskQueries`, which `TaskService` implements. No "TaskService" on that line |
+| [Index.cshtml.cs L19](../../src/Tasks.App/Pages/Index.cshtml.cs#L19) `feed.Recent(3)` | **No**: that's `ActivityFeed.Recent()`, a different method with the same name |
+| [TaskService.cs L33](../../src/Tasks.App/Services/TaskService.cs#L33), [ITaskQueries.cs L10](../../src/Tasks.App/Services/ITaskQueries.cs#L10), [ActivityFeed.cs L6](../../src/Tasks.App/Services/ActivityFeed.cs#L6) | No: declarations |
+
+A strong model reading carefully usually gets this right from text search too; it just reads more
+files to get there, and a smaller model may count `feed.Recent(3)` or miss the interface call. Find All
+References knows the types, so it's exact in one step.
+
+The honest lesson, from the Python lab's runs: **agents rarely pick the semantic tool unprompted**.
+The capability is there; one line of instruction makes it the default. That's a theme for the rest of
+the lab: a primitive often isn't a new capability, it's telling the agent to use the one it has.
+
+**Copilot CLI:** the CLI needs a language server configured in `.github/lsp.json` to get an `lsp`
+tool. Choosing a C# server that installs without a global tool is open spike S7; until then Part C is
+VS Code only.
 
 ## The six findings
 
@@ -163,6 +212,8 @@ Verified on the Mac (SDK 10.0.102, macOS arm64, 17 Nov 2026):
 - [ ] Same count on SDK 11 and on Windows (spike S3, second half)
 - [ ] An SDK 9 machine gets a readable refusal (spike S1, second half)
 - [ ] `./lab apply 0` / `reset` replace the manual `cp`
+- [x] Part C tried in VS Code: works as described, including Find All References through `ITaskQueries` (Steve, 17 Nov)
+- [ ] Part C in the Copilot CLI via `.github/lsp.json` (spike S7)
 
 Found while building it (goes into BUILDING-LABS later):
 

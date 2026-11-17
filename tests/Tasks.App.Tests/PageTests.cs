@@ -27,4 +27,31 @@ public class PageTests
 
         Assert.Contains("Latest: NEWER", html, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task Recent_api_is_newest_first()
+    {
+        using var app = new TestApp();
+        app.Tasks.Add("Older");
+        app.Clock.Advance(TimeSpan.FromMinutes(1));
+        app.Tasks.Add("Newer");
+        using var client = app.CreateClient();
+
+        var json = await client.GetStringAsync("/api/tasks/recent");
+
+        Assert.True(json.IndexOf("Newer", StringComparison.Ordinal) < json.IndexOf("Older", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Home_shows_latest_activity()
+    {
+        using var app = new TestApp();
+        var task = app.Tasks.Add("Write report");
+        app.Tasks.Complete(task.Id);
+        using var client = app.CreateClient();
+
+        var html = await client.GetStringAsync("/");
+
+        Assert.Contains("Completed: Write report", html, StringComparison.Ordinal);
+    }
 }

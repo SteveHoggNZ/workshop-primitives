@@ -11,3 +11,10 @@
         <li>@task.Title</li>
     }
 </ul>
+<h2>Latest activity</h2>
+<ul>
+    @foreach (var line in Model.Activity)
+    {
+        <li>@line</li>
+    }
+</ul>

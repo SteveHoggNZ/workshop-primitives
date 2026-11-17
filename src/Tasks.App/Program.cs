@@ -26,10 +26,13 @@ builder.Services.AddSingleton(sp =>
     return store;
 });
 builder.Services.AddSingleton<TaskService>();
+builder.Services.AddSingleton<ITaskQueries>(sp => sp.GetRequiredService<TaskService>());
+builder.Services.AddSingleton<ActivityFeed>();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
 app.MapRazorPages();
+app.MapGet("/api/tasks/recent", (ITaskQueries queries) => queries.Recent());
 app.Run();
 
 /// <summary>Exposed so tests can start the app in-process.</summary>

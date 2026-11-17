@@ -4,7 +4,7 @@ using Tasks.App.Models;
 namespace Tasks.App.Services;
 
 /// <summary>The only way the rest of the app reads or changes tasks.</summary>
-public sealed class TaskService(TaskStore store, TimeProvider clock)
+public sealed class TaskService(TaskStore store, TimeProvider clock) : ITaskQueries
 {
     public TaskItem Add(string title)
     {
