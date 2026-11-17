@@ -1,0 +1,13 @@
+# Lint rules for the app. These, plus the compiler's nullable warnings, are what
+# `./lab lint` counts and what the VS Code Problems panel shows.
+# Every other analyzer rule is off (AnalysisMode=None in Directory.Build.props).
+
+[*.cs]
+# Culture-sensitive string operation without an explicit culture
+dotnet_diagnostic.CA1304.severity = warning
+# Culture-sensitive formatting without an explicit format provider
+dotnet_diagnostic.CA1305.severity = warning
+# Member doesn't use instance data and can be static
+dotnet_diagnostic.CA1822.severity = warning
+# Count() on a collection that has a Count property
+dotnet_diagnostic.CA1829.severity = warning

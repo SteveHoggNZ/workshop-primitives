@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Runs the lab helper (tools/Lab). Builds it into .lab-bin/ the first time, and again when its source changes.
+set -euo pipefail
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+dll="$root/.lab-bin/Lab.dll"
+
+if [[ ! -f "$dll" || "$root/tools/Lab/Lab.csproj" -nt "$dll" || -n "$(find "$root/tools/Lab" -name '*.cs' -newer "$dll" -print -quit)" ]]; then
+  log="$(mktemp)"
+  if ! DOTNET_NOLOGO=1 dotnet build "$root/tools/Lab/Lab.csproj" -c Release -o "$root/.lab-bin" -nologo -tl:off -v:q >"$log" 2>&1; then
+    cat "$log" >&2
+    rm -f "$log"
+    exit 1
+  fi
+  rm -f "$log"
+fi
+
+exec dotnet "$dll" "$@"

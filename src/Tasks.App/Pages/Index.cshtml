@@ -1,0 +1,13 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Tasks";
+}
+<h1>Open tasks</h1>
+<p>@Model.Open.Count open, @Model.DoneCount done.</p>
+<ul>
+    @foreach (var task in Model.Open)
+    {
+        <li>@task.Title</li>
+    }
+</ul>

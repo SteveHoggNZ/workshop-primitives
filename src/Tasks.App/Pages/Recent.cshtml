@@ -1,0 +1,14 @@
+@page
+@model RecentModel
+@{
+    ViewData["Title"] = "Recent";
+}
+<h1>Recently added</h1>
+<p>@Model.Total tasks. Latest: @Model.LatestTitle</p>
+<ul>
+    @for (var i = 0; i < Model.Tasks.Count; i++)
+    {
+        <li>@Model.Tasks[i].Title (@Model.Labels[i])</li>
+    }
+</ul>
+<p>Page loaded at @Model.LoadedAt</p>

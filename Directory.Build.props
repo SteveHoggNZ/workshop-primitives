@@ -1,0 +1,21 @@
+<Project>
+  <!--
+    One target framework for every project: net10.0 (the current LTS).
+    SDK 10.0.100 or later builds it; global.json refuses older SDKs.
+    LangVersion and AnalysisLevel are pinned so a newer SDK (11, 12, ...) gives the
+    same language and the same lint count. Change them only on purpose.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- Lint: no analyzer rules on by default; src/.editorconfig turns on the named ones. -->
+    <AnalysisLevel>10.0</AnalysisLevel>
+    <AnalysisMode>None</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The lab helper: people run it through ./lab (or lab.cmd); hooks will run .lab-bin/Lab.dll directly. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Lab</AssemblyName>
+    <RootNamespace>Lab</RootNamespace>
+  </PropertyGroup>
+</Project>
