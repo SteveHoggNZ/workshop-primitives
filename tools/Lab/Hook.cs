@@ -21,11 +21,18 @@ internal static partial class Hook
     public static int Run(string[] args)
     {
         var sub = args.Length > 0 ? args[0] : "";
+        if (sub == "gate")
+        {
+            return Gate.Run(args[1..]);
+        }
+
         if (sub != "guard")
         {
-            Console.Error.WriteLine("Usage: ./lab hook guard [--sleep N]   (reads a preToolUse event as JSON on stdin)");
+            Console.Error.WriteLine("Usage: ./lab hook guard [--bar] [--sleep N] | gate   (reads a hook event as JSON on stdin)");
             return 2;
         }
+
+        var bar = args.Contains("--bar");
 
         var sleep = Array.IndexOf(args, "--sleep");
         if (sleep >= 0 && sleep + 1 < args.Length && int.TryParse(args[sleep + 1], out var seconds))
@@ -62,6 +69,14 @@ internal static partial class Hook
             {
                 toolArgs = JsonValue.Create(text);
             }
+        }
+
+        if (bar && TouchesBar(tool, toolArgs, cwd) is { } barHit)
+        {
+            Reply("deny",
+                $"{barHit} sets the lint bar. People move the bar, not an agent and not to pass a check. Leave it as it is and fix " +
+                "the findings in the code instead.");
+            return 0;
         }
 
         var hit = Touches(tool, toolArgs, cwd);
@@ -109,6 +124,43 @@ internal static partial class Hook
             if (!raw.Contains('\n', StringComparison.Ordinal) && Rel(raw, cwd) is { } rel && IsProtected(rel))
             {
                 return rel;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>A write to one of the files that set the lint bar (see Gate.Bar), or null.</summary>
+    private static string? TouchesBar(string tool, JsonNode? args, string cwd)
+    {
+        var shell = tool is "bash" or "shell" or "powershell" or "Bash" or "PowerShell";
+        if (shell)
+        {
+            var c = ((string?)args?["command"] ?? "").Replace('\\', '/');
+            return Gate.Bar.FirstOrDefault(b => c.Contains(Path.GetFileName(b), StringComparison.Ordinal)) is { } f && ShellWrite().IsMatch(c) ? f : null;
+        }
+
+        if (!WriteTool().IsMatch(tool))
+        {
+            return null;
+        }
+
+        var paths = new List<string>();
+        Collect(args, paths);
+        foreach (var raw in paths)
+        {
+            var candidates = PatchFile().Matches(raw).Select(m => m.Groups[1].Value.Trim()).ToList();
+            if (!raw.Contains('\n', StringComparison.Ordinal))
+            {
+                candidates.Add(raw);
+            }
+
+            foreach (var cand in candidates)
+            {
+                if (Rel(cand, cwd) is { } rel && Gate.Bar.FirstOrDefault(b => rel == b || rel.EndsWith("/" + b, StringComparison.Ordinal)) is { } hit)
+                {
+                    return hit;
+                }
             }
         }
 

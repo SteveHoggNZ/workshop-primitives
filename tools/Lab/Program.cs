@@ -16,6 +16,7 @@ try
         "goto" => StepCommands.Goto(rest),
         "tdd" => Tdd.Run(rest),
         "hook" => Hook.Run(rest),
+        "ratchet" => Ratchet(rest),
         "help" or "--help" or "-h" => Help(),
         _ => Unknown(command),
     };
@@ -35,6 +36,7 @@ static int Help()
           warm                   One-off setup after doctor: first build, and the skill scripts' packages.
           lint [--json]          Build the app and count lint findings against docs/lint-baseline.md.
           lint --check           Same, but exit 1 if the count is above the baseline.
+          ratchet [N]            Lower the lint baseline (by one, or to N) and commit it.
 
           list                   Show the steps and which are installed.
           apply N [--tools T]    Install step N's example as its own commit. T: claude,codex adapters.
@@ -43,6 +45,31 @@ static int Help()
 
         The loop for each step: Before run, ./lab reset, ./lab apply N, read the files, After run in a new session.
         """);
+    return 0;
+}
+
+static int Ratchet(string[] args)
+{
+    // The team lowers the lint baseline (Step 7's setup). Its own commit, so ./lab reset doesn't undo it.
+    var file = Path.Combine(Repo.Root, "docs", "lint-baseline.md");
+    var text = File.ReadAllText(file);
+    var match = System.Text.RegularExpressions.Regex.Match(text, @"^Total:\s*(\d+)", System.Text.RegularExpressions.RegexOptions.Multiline);
+    if (!match.Success)
+    {
+        throw new LabException("docs/lint-baseline.md has no 'Total: N' line. Install step 0 first (./lab apply 0).");
+    }
+
+    var current = int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+    var target = args.Length > 0 ? int.Parse(args[0], System.Globalization.CultureInfo.InvariantCulture) : current - 1;
+    if (target >= current)
+    {
+        Console.WriteLine($"The baseline is {current}; a ratchet only goes down.");
+        return 1;
+    }
+
+    File.WriteAllText(file, text.Remove(match.Index, match.Length).Insert(match.Index, $"Total: {target}"));
+    Git.Commit($"lab: lint baseline lowered to {target}", ["docs/lint-baseline.md"]);
+    Console.WriteLine($"Lint baseline lowered from {current} to {target}, committed. ./lab lint now compares against {target}.");
     return 0;
 }
 
