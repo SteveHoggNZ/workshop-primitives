@@ -9,7 +9,7 @@ index 1512c42..1cddb7d 100644
 +
 +- Added a Completed page listing completed tasks and the time the page was loaded.
 diff --git a/docs/architecture.md b/docs/architecture.md
-index ad64670..131349c 100644
+index ea33307..d5b4c48 100644
 --- a/docs/architecture.md
 +++ b/docs/architecture.md
 @@ -16,6 +16,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
@@ -19,7 +19,7 @@ index ad64670..131349c 100644
 +| `/Completed` | Completed | Completed tasks, newest first, and when the page was loaded |
  | `/Reports` | Reports | Weekly completion report |
  | `/Agent` | Agent | The in-app agent: type commands to manage tasks |
- 
+ | `/Dashboard` | Dashboard | This week's start date and the share of tasks done |
 diff --git a/src/Tasks.App/Pages/Completed.cshtml b/src/Tasks.App/Pages/Completed.cshtml
 new file mode 100644
 index 0000000..8fbbf6e
@@ -75,7 +75,7 @@ index 0000000..57a6e4d
 +    }
 +}
 diff --git a/src/Tasks.App/Pages/Shared/_Layout.cshtml b/src/Tasks.App/Pages/Shared/_Layout.cshtml
-index 2cd889e..a917252 100644
+index 8fb1ca6..cf108c1 100644
 --- a/src/Tasks.App/Pages/Shared/_Layout.cshtml
 +++ b/src/Tasks.App/Pages/Shared/_Layout.cshtml
 @@ -10,6 +10,7 @@
@@ -84,8 +84,8 @@ index 2cd889e..a917252 100644
              <a href="/Recent">Recent</a>
 +            <a href="/Completed">Completed</a>
              <a href="/Agent">Agent</a>
+             <a href="/Dashboard">Dashboard</a>
          </nav>
-     </header>
 diff --git a/tests/Tasks.App.Tests/PageTests.cs b/tests/Tasks.App.Tests/PageTests.cs
 index 82eec1f..f901db7 100644
 --- a/tests/Tasks.App.Tests/PageTests.cs

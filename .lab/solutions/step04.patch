@@ -1,0 +1,59 @@
+diff --git a/src/Tasks.App/Services/TaskStats.cs b/src/Tasks.App/Services/TaskStats.cs
+index 3f677ab..8c9d01f 100644
+--- a/src/Tasks.App/Services/TaskStats.cs
++++ b/src/Tasks.App/Services/TaskStats.cs
+@@ -4,12 +4,12 @@ namespace Tasks.App.Services;
+ public static class TaskStats
+ {
+     /// <summary>The share of tasks that are done, as a whole percentage.</summary>
+-    public static int CompletionPercent(int done, int total) => done * 100 / total;
++    public static int CompletionPercent(int done, int total) => total == 0 ? 0 : done * 100 / total;
+ 
+     /// <summary>The Monday the current week started on, for a user in <paramref name="zone"/>.</summary>
+     public static DateOnly WeekStart(DateTimeOffset now, TimeZoneInfo zone)
+     {
+-        var today = DateOnly.FromDateTime(now.UtcDateTime.Date);
++        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);
+         var daysSinceMonday = ((int)today.DayOfWeek + 6) % 7;
+         return today.AddDays(-daysSinceMonday);
+     }
+diff --git a/tests/Tasks.App.Tests/DashboardTests.cs b/tests/Tasks.App.Tests/DashboardTests.cs
+index 929e2b6..ffdca9f 100644
+--- a/tests/Tasks.App.Tests/DashboardTests.cs
++++ b/tests/Tasks.App.Tests/DashboardTests.cs
+@@ -1,3 +1,6 @@
++using System.Globalization;
++using System.Net;
++
+ namespace Tasks.App.Tests;
+ 
+ public class DashboardTests
+@@ -15,4 +18,28 @@ public class DashboardTests
+ 
+         Assert.Contains("Completed: 50% (1 of 2)", html, StringComparison.Ordinal);
+     }
++
++    [Fact]
++    public async Task Empty_dashboard_shows_zero_percent()
++    {
++        using var app = new TestApp();
++        using var client = app.CreateClient();
++
++        var response = await client.GetAsync("/Dashboard");
++
++        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
++        Assert.Contains("Completed: 0% (0 of 0)", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
++    }
++
++    [Fact]
++    public async Task Week_starts_on_the_local_monday_on_a_monday_morning()
++    {
++        using var app = new TestApp();
++        app.Clock.Set(DateTimeOffset.Parse("2026-11-16T08:00:00+13:00", CultureInfo.InvariantCulture));
++        using var client = app.CreateClient();
++
++        var html = await client.GetStringAsync("/Dashboard");
++
++        Assert.Contains("Week starting: 16 Nov", html, StringComparison.Ordinal);
++    }
+ }
