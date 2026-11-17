@@ -218,3 +218,6 @@ Next: Step 3 (read OVERNIGHT.md)
   Demo rehearsal (`rehearse.py`, fresh clone of `4a01dc6`, quiet machine): every walkthrough command OK; slowest
   `./lab warm` 11 s (setup), profile.cs 9.7 s first / 6.3 s warm, gate full check 6.8 s, `lab tdd green` 5.0 s,
   doctor 5.5 s cold. 34 attendee timings in metrics.jsonl. Next: report, clean-up.
+- **00:07** Report `OVERNIGHT-REPORT.md` committed (`111575b`). Clean-up: run clones removed with `lab.py clean` (transcripts,
+  .json, .out, usage kept), scratch clones removed, `.lab-homes` untouched. `main` pushed (fast-forward only).
+  Next: Steve's VS Code checks (each walkthrough's "VS Code check for Steve") and the decisions in the report.
