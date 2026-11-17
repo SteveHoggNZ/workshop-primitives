@@ -9,7 +9,7 @@ index 1512c42..1cddb7d 100644
 +
 +- Added a Completed page listing completed tasks and the time the page was loaded.
 diff --git a/docs/architecture.md b/docs/architecture.md
-index ea33307..d5b4c48 100644
+index 62ef5de..02b98f9 100644
 --- a/docs/architecture.md
 +++ b/docs/architecture.md
 @@ -16,6 +16,7 @@ Time comes from an injected `TimeProvider`, so tests can pin the clock. The user
@@ -75,7 +75,7 @@ index 0000000..57a6e4d
 +    }
 +}
 diff --git a/src/Tasks.App/Pages/Shared/_Layout.cshtml b/src/Tasks.App/Pages/Shared/_Layout.cshtml
-index 8fb1ca6..cf108c1 100644
+index f44f944..444ee01 100644
 --- a/src/Tasks.App/Pages/Shared/_Layout.cshtml
 +++ b/src/Tasks.App/Pages/Shared/_Layout.cshtml
 @@ -10,6 +10,7 @@
@@ -85,7 +85,7 @@ index 8fb1ca6..cf108c1 100644
 +            <a href="/Completed">Completed</a>
              <a href="/Agent">Agent</a>
              <a href="/Dashboard">Dashboard</a>
-         </nav>
+             <a href="/Bulk">Bulk</a>
 diff --git a/tests/Tasks.App.Tests/PageTests.cs b/tests/Tasks.App.Tests/PageTests.cs
 index 82eec1f..f901db7 100644
 --- a/tests/Tasks.App.Tests/PageTests.cs

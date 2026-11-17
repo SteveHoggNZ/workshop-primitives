@@ -1,0 +1,43 @@
+diff --git a/src/Tasks.App/Services/TextHelpers.cs b/src/Tasks.App/Services/TextHelpers.cs
+index 9842367..46249da 100644
+--- a/src/Tasks.App/Services/TextHelpers.cs
++++ b/src/Tasks.App/Services/TextHelpers.cs
+@@ -3,28 +3,18 @@ using System.Text.RegularExpressions;
+ namespace Tasks.App.Services;
+ 
+ /// <summary>Text clean-up for search: lower case, stop words removed, spaces collapsed.</summary>
+-public static class TextHelpers
++public static partial class TextHelpers
+ {
+-    private static readonly string[] StopWords =
+-    [
+-        "a", "an", "the", "and", "or", "but", "for", "of", "to", "in", "on", "at", "by", "with", "from",
+-        "up", "out", "as", "is", "it", "be", "this", "that", "our", "your", "my", "we", "you", "all", "new",
+-    ];
+-
+     public static string Normalise(string text)
+     {
+-        var result = " " + text + " ";
+-        foreach (var word in StopWords)
+-        {
+-            var pattern = new Regex($@"\b{word}\b", RegexOptions.IgnoreCase);
+-            result = pattern.Replace(result, " ");
+-            foreach (var casing in new[] { word, word.ToUpperInvariant(), char.ToUpperInvariant(word[0]) + word[1..] })
+-            {
+-                result = new Regex($@"\s{casing}\s").Replace(result, " ");
+-                result = result.Replace(" " + casing + " ", " ", StringComparison.Ordinal);
+-            }
+-        }
+-
+-        return Regex.Replace(result.ToLowerInvariant(), @"\s+", " ").Trim();
++        var result = StopWord().Replace(" " + text + " ", " ");
++        return Spaces().Replace(result.ToLowerInvariant(), " ").Trim();
+     }
++
++    // Built once at compile time, not per call: the old code made 120 Regex objects for every title.
++    [GeneratedRegex(@"\b(a|an|the|and|or|but|for|of|to|in|on|at|by|with|from|up|out|as|is|it|be|this|that|our|your|my|we|you|all|new)\b", RegexOptions.IgnoreCase)]
++    private static partial Regex StopWord();
++
++    [GeneratedRegex(@"\s+")]
++    private static partial Regex Spaces();
+ }

@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: "Fix a bug or add behaviour test-first (red, green), one behaviour at a time, with ./lab tdd recording the phase. Use when behaviour is wrong: wrong output, an error page, an exception, a wrong date. Not for slowness, CPU or memory problems (measure those first), visual-only glitches, docs, config or infrastructure."
+description: "Fix a bug or add behaviour test-first (red, green), one behaviour at a time, with ./lab tdd recording the phase. Use when behaviour is wrong: wrong output, an error page, an exception, a wrong date. Not for slowness, CPU or memory problems, visual-only glitches, docs, config or infrastructure."
 ---
 
 # Test-first change
