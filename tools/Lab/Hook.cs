@@ -87,6 +87,12 @@ internal static partial class Hook
             return ShellWrites(command, cwd);
         }
 
+        // Reading is always fine: only tools that create, change or delete files are judged.
+        if (!WriteTool().IsMatch(tool))
+        {
+            return null;
+        }
+
         // File tools: every string argument that looks like a path, plus paths named inside a patch.
         var paths = new List<string>();
         Collect(args, paths);
@@ -177,6 +183,9 @@ internal static partial class Hook
             ["permissionDecision"] = decision,
             ["permissionDecisionReason"] = reason,
         }));
+
+    [GeneratedRegex(@"edit|write|create|patch|str_replace|insert|delete|remove|move|rename|notebook", RegexOptions.IgnoreCase)]
+    private static partial Regex WriteTool();
 
     [GeneratedRegex(@"\*\*\* (?:Update|Add|Delete) File: ([^\n]+)")]
     private static partial Regex PatchFile();
