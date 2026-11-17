@@ -7,7 +7,7 @@ description: "Fix a bug or add behaviour test-first (red, green), one behaviour 
 
 The team's rule: **a fix isn't done until a test has failed without it and passes with it.** A test
 written after the fix may never have caught the bug. `./lab tdd` records the phase in `.tdd-phase`
-and checks each step, so the red is evidence, not a claim. (Windows: `lab tdd`.)
+and checks each step, so the red is evidence, not a claim. (Windows: `.\lab tdd`.)
 
 Work on **one behaviour at a time**: two bugs are two rounds.
 
@@ -21,9 +21,9 @@ Work on **one behaviour at a time**: two bugs are two rounds.
 
 ## Green
 
-4. `./lab tdd green`. It runs the suite and moves to green only if a test **fails for the right
-   reason**: an assertion, or the bug's exception. If the tests don't build, it refuses: a test that
-   doesn't compile hasn't shown the bug. Fix the test, not the app.
+4. `./lab tdd green`. It runs the suite and moves to green only if your **new test fails when it
+   runs**: an assertion, or the bug's exception. If the tests don't build, or `src/` changed since
+   `red`, it refuses: a test that doesn't compile hasn't shown the bug. Fix the test, not the app.
 5. Make the **smallest** change in `src/` that makes it pass. Don't edit the failing test.
 6. `./lab tdd done`. It finishes only when the whole suite passes, including the test that failed.
 

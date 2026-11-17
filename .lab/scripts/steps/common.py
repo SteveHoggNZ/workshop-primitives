@@ -40,15 +40,27 @@ def calls(ev) -> List[Tuple[int, str, str]]:
     return out
 
 
+def _command(body: str) -> str:
+    """The command line of a shell call (the `$ ...` line), not its output."""
+    m = re.search(r"`\$ ([^`]*)`", body)
+    return m.group(1) if m else ""
+
+
 def first_edit(ev, path_part: str) -> Optional[int]:
-    """Position of the first edit to a file whose path contains path_part (edit tools or sed -i)."""
+    """Position of the first edit to a file whose path contains path_part (edit tools, or a shell command
+    that writes: sed -i, a redirect, PowerShell Set-Content ...). Only a shell call's command line is read,
+    not its output: `dotnet test` prints `Tasks.App -> .../src/Tasks.App/bin/...`, which isn't an edit
+    (Step 4 review). Backslash paths count the same as forward-slash ones."""
+    part = path_part.replace("\\", "/")
     for pos, name, body in calls(ev):
         if "Denied by preToolUse hook" in body or "Denied, no one to approve" in body:
             continue  # the hook stopped it: nothing changed
-        if name in EDIT_TOOLS and path_part in body:
+        if name in EDIT_TOOLS and part in body.replace("\\\\", "/").replace("\\", "/"):
             return pos
-        if name in {"bash", "shell", "powershell"} and path_part in body and re.search(r"sed -i|> *\S*" + re.escape(path_part) + r"|perl -pi|python3? -c|Set-Content|Out-File|WriteAllText", body):
-            return pos
+        if name in {"bash", "shell", "powershell"}:
+            cmd = _command(body).replace("\\", "/")
+            if part in cmd and re.search(r"sed -i|>>? *\S*" + re.escape(part) + r"|perl -pi|python3? -c|Set-Content|Add-Content|Out-File|WriteAllText|\btee\b|\bmv\b|\bcp\b", cmd):
+                return pos
     return None
 
 

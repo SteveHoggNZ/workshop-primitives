@@ -19,7 +19,7 @@ PROMPTS = {"before": BUGS + " Fix both."}
 PROMPTS["after"] = PROMPTS["before"]
 CHECKS = ["LabCheck04"]
 
-RED = re.compile(r"Failed!\s*-\s*Failed:\s*[1-9]|GREEN: \d+ failing|\[FAIL\]|^\s*Failed Tasks\.App\.Tests\.", re.M)
+RED = re.compile(r"Failed!\s*-\s*Failed:\s*[1-9]|GREEN: \d+ failing|\[FAIL\]|^\s*Failed Tasks\.App\.Tests\.|failed: [1-9]|error TESTERROR", re.M)
 
 
 def _red_runs(ev):
@@ -85,7 +85,7 @@ def score(ev):
     fixed = c.get("Empty_dashboard_shows_zero_percent") == "Passed" and \
         [v for k, v in c.items() if k.startswith("Week_starts_on_the_local_monday")] == ["Passed"] * 3
     added = "\n".join(l for l in ev.diff("tests").splitlines() if l.startswith("+"))
-    covers = bool(re.search(r"Dashboard|0\s?%|Percent", added)) and bool(re.search(r"Week|16 Nov|WeekStart", added, re.I))
+    covers = bool(re.search(r"0\s?%|Percent|[Ee]mpty|no tasks|NoTasks", added)) and bool(re.search(r"Week|16 Nov|WeekStart", added, re.I))
     reds = _red_runs(ev)
     edit_at = _src_edit(ev)
     red_first = bool(reds) and (edit_at is None or reds[0] < edit_at)

@@ -6,7 +6,7 @@ prompt again in a new session, and compare. If you install first, there's nothin
 **Before you start:** Steps 0 to 2 must be installed, and `docs/architecture.md` must be as shipped. Check with:
 
 ```bash
-./lab list              # Windows: lab list
+./lab list              # Windows: .\lab list
 git status --short docs/
 ```
 

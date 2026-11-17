@@ -6,7 +6,7 @@ prompt again in a new session, and compare. If you install first, there's nothin
 **Before you start:** Steps 0 to 3 must be installed. Check with:
 
 ```bash
-./lab list              # Windows: lab list
+./lab list              # Windows: .\lab list
 ```
 
 You should see an `x` next to steps 00 to 03:
@@ -106,12 +106,15 @@ the fix, `done`. Sessions: Before 1–1.5 min, After about 3.3 min (each round r
 - **Closing rule:** [the skill's Red and Green sections](../examples/step04-tdd-skill/.agents/skills/tdd/SKILL.md#L14-L29):
   one behaviour, one test, `./lab tdd green`, then the smallest fix, then `./lab tdd done`.
 - **Why a command, not just the rule.** "Write the test first" is a habit you can claim. `./lab tdd
-  green` runs the suite and records the failing test names in `.tdd-phase`. `done` refuses if that
-  test is gone, so deleting the red test doesn't count.
+  green` runs the suite and records the failing test names in `.tdd-phase`. It only counts a test in a
+  new or changed test file (an old failing test isn't evidence), and refuses if `src/` changed since
+  `red`. `done` refuses if the red test is gone, so deleting it doesn't count.
+- **What it can't see.** It doesn't check that you left the failing test's assertion alone in green.
+  The skill says not to; a reviewer reading the diff is still the check for that.
 - **Not a compile error.** In C# the easy fake red is a test that calls a method that doesn't exist
   yet: it "fails", but only because it doesn't build. `green` reads the test results file (TRX):
-  no results means the build failed, and it refuses ("the tests don't build, so nothing failed for the
-  right reason"). Try it (Try 2).
+  no results means the build failed, and it refuses ("the tests don't build, so nothing failed when it
+  ran"). Try it (Try 1).
 
 ### Show the failure (item 5): the skill's final-message rule
 
@@ -149,9 +152,9 @@ still exist and pass. It's in `tools/Lab` with the other lab commands, so it run
 
 | Item | Where to check |
 |---|---|
-| 1 | `/Dashboard` with no tasks shows `0%`; with `APP_NOW=2026-11-16T08:00:00+13:00`, "Week starting: 16 Nov"; `dotnet test` passes |
+| 1 | `/Dashboard` with no tasks shows `0%`; with `APP_NOW=2026-11-16T08:00:00+13:00` (PowerShell: `$env:APP_NOW='2026-11-16T08:00:00+13:00'`), "Week starting: 16 Nov"; `dotnet test` passes |
 | 2 | `tests/` diff: a test for the empty dashboard and one for the week start |
-| 3 | The transcript: a `dotnet test` or `./lab tdd green` run with a failing test, **before** the first edit to `src/` |
+| 3 | The transcript: a `dotnet test` or `./lab tdd green` run with a failing test, **before** the first edit to `src/`. One red before the first fix is enough for the point: the checklist doesn't ask for one per bug |
 | 4 | The transcript: `GREEN:` and `DONE:` lines from `./lab tdd` |
 | 5 | The final message: a `FAIL` (or `Assert.... Failure`) line in a code block |
 
@@ -181,8 +184,8 @@ The reference solution is [.lab/solutions/step04.patch](../solutions/step04.patc
 
 ## Timing
 
-`./lab tdd green` and `done` each run `dotnet test`: a few seconds on a warm machine (it builds what
-changed, then runs the suite). Each round of the After runs it twice.
+`./lab tdd green` and `done` each run `dotnet test`: 10–20 s (it builds what changed, then runs the
+suite; we measured 13–14 s for the test run alone on a busy machine). Each round of the After runs it twice.
 
 ## For us
 
