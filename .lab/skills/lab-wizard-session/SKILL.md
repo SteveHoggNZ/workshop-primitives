@@ -29,6 +29,9 @@ without asking them to paste anything.
    - `Session:` the run's session ID. The newest match wins, so run the script right after the
      participant says the run finished, and check it is the run you expect (Before vs After).
    - `=== Final message ===` the agent's last non-empty reply. Score answer and `Total:` items from it.
+     If the run ended with a `task_complete` tool call, the heading says `(task_complete summary)` and
+     the text is that call's summary: the real final message, even when the last chat message was
+     only a progress update.
    - `=== Commands run ===` every command the agent ran, for example `[bash] ./lab lint`.
      A quoted `Total:` line with no `./lab lint` here was not actually run.
 5. Quote the evidence you used in the scoring table (session ID, the line from the final message,

@@ -7,14 +7,19 @@ Usage: find-session.py PROMPT OWN_SESSION_ID
 
 Scans <COPILOT_HOME or ~/.copilot>/session-state/*/events.jsonl, newest first by the events.jsonl
 modified time, and picks the newest session whose user.message content contains the prompt
-(whitespace-insensitive). Prints the session ID, the last non-empty assistant.message content and
-every command from tool.execution_start events. Exits 1 if nothing matches.
+(whitespace-insensitive). Prints the session ID, the run's final message and every command from
+tool.execution_start events. Exits 1 if nothing matches.
+
+The final message is the summary the agent passed to its last task_complete tool call, when it ended
+that way (a run can finish with task_complete after a progress update). Otherwise it's the last
+non-empty assistant.message content.
 """
 
 import json
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 
 def normalise(text: str) -> str:
@@ -46,8 +51,23 @@ def matches(path: Path, prompt: str) -> bool:
     return False
 
 
+def task_complete_summary(args) -> Optional[str]:
+    """The summary text from a task_complete tool call's arguments, if there is one."""
+    if isinstance(args, str) and args.strip():
+        return args
+    if not isinstance(args, dict):
+        return None
+    for key in ("summary", "message", "result", "text"):
+        value = args.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+    texts = [v for v in args.values() if isinstance(v, str) and v.strip()]
+    return "\n\n".join(texts) if texts else None
+
+
 def report(path: Path) -> None:
     final_message = None
+    task_summary = None
     commands = []
     for event in read_events(path):
         kind = event.get("type")
@@ -58,13 +78,21 @@ def report(path: Path) -> None:
                 final_message = content
         elif kind == "tool.execution_start":
             args = data.get("arguments")
+            if data.get("toolName") == "task_complete":
+                summary = task_complete_summary(args)
+                if summary is not None:
+                    task_summary = summary
             if isinstance(args, dict) and isinstance(args.get("command"), str):
                 commands.append(f"[{data.get('toolName', '?')}] {args['command']}")
 
     print(f"Session: {path.parent.name}")
     print(f"Transcript: {path}")
-    print("\n=== Final message ===")
-    print(final_message if final_message is not None else "(no non-empty assistant message)")
+    if task_summary is not None:
+        print("\n=== Final message (task_complete summary) ===")
+        print(task_summary)
+    else:
+        print("\n=== Final message ===")
+        print(final_message if final_message is not None else "(no non-empty assistant message)")
     print(f"\n=== Commands run ({len(commands)}) ===")
     for command in commands:
         print(command)
