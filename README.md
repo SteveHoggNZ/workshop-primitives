@@ -82,17 +82,17 @@ and the loop. Read it **only down to the spoiler line** before your Before run.
 
 ## The steps
 
-| Step | Primitive | Gap | Walkthrough | Validated (Before → After) |
-|---|---|---|---|---|
-| 0 | Warm-up: a linter the agent can read | – | [step00](.lab/walkthroughs/step00.md) | by hand, in VS Code |
-| 1 | Project instructions (`AGENTS.md`) and a scoped rule | information | [step01](.lab/walkthroughs/step01.md) | 1/6 → 6/6 |
-| 2 | A skill with a tested script, and a prompt file | information | [step02](.lab/walkthroughs/step02.md) | 3/6 → 6/6 |
-| 3 | A read-only reviewer agent: the tool list does the enforcing | enforcement | [step03](.lab/walkthroughs/step03.md) | 1/4 → 4/4 |
-| 4 | A TDD skill with phase state: evidence, not claims | enforcement | [step04](.lab/walkthroughs/step04.md) | 2/5 → 5/5 |
-| 5 | A diagnostics skill: measure first, on a cheaper model | capability | [step05](.lab/walkthroughs/step05.md) | 2/4 → 4/4 |
-| 6 | Permissions, then hooks | enforcement | [step06](.lab/walkthroughs/step06.md) | 1/4 → 4/4 |
-| 7 | A quality gate at the end of the session | enforcement | [step07](.lab/walkthroughs/step07.md) | 3/5 → 5/5 |
-| 8 | Clarify before you build: one prompt, ask first, Spec Kit | ambiguity | [step08](.lab/walkthroughs/step08.md) | 0–1/8 → 7/8 (both clarifying arms) |
+| Step | Type | Primitive | Gap | Walkthrough | Validated (Before → After) |
+|---|---|---|---|---|---|
+| 0 | Tooling (lint rules) | Warm-up: a linter the agent can read | – | [step00](.lab/walkthroughs/step00.md) | by hand, in VS Code |
+| 1 | Instructions | Project instructions (`AGENTS.md`) and a scoped rule | information | [step01](.lab/walkthroughs/step01.md) | 1/6 → 6/6 |
+| 2 | Skill | A skill with a tested script, and a prompt file | information | [step02](.lab/walkthroughs/step02.md) | 3/6 → 6/6 |
+| 3 | Custom agent | A read-only reviewer agent: the tool list does the enforcing | enforcement | [step03](.lab/walkthroughs/step03.md) | 1/4 → 4/4 |
+| 4 | Skill + harness (`lab tdd`) | A TDD skill with phase state: evidence, not claims | enforcement | [step04](.lab/walkthroughs/step04.md) | 2/5 → 5/5 |
+| 5 | Skill | A diagnostics skill: measure first, on a cheaper model | capability | [step05](.lab/walkthroughs/step05.md) | 2/4 → 4/4 |
+| 6 | Permissions + hook | Permissions, then hooks | enforcement | [step06](.lab/walkthroughs/step06.md) | 1/4 → 4/4 |
+| 7 | Hook | A quality gate at the end of the session | enforcement | [step07](.lab/walkthroughs/step07.md) | 3/5 → 5/5 |
+| 8 | Skills + workflow (Spec Kit) | Clarify before you build: one prompt, ask first, Spec Kit | ambiguity | [step08](.lab/walkthroughs/step08.md) | 0–1/8 → 7/8 (both clarifying arms) |
 
 The sessions build up: tell it what it can't know (1–3), evidence rather than claims (4–5), rules
 rather than requests (6–7), and clarify before you build (8).
