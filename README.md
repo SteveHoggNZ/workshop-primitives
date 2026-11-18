@@ -22,7 +22,8 @@ labs and inspiration.
 - Git.
 - VS Code with the C# extension, and GitHub Copilot (agent mode). Step 0 needs VS Code.
   The other steps also work in the Copilot CLI.
-- Step 8 needs a partner (or the facilitator) to play the stakeholder.
+- Step 8 needs a partner (or the facilitator) to play the stakeholder: see
+  [the stakeholder and roles guide](.lab/walkthroughs/step08-stakeholder.md).
 
 No database, Docker, Node or Python is needed for the lab itself.
 
@@ -92,7 +93,7 @@ and the loop. Read it **only down to the spoiler line** before your Before run.
 | 5 | Skill | A diagnostics skill: measure first, on a cheaper model | capability | [step05](.lab/walkthroughs/step05.md) | 2/4 → 4/4 |
 | 6 | Hook + permissions | Permissions, then hooks | enforcement | [step06](.lab/walkthroughs/step06.md) | 1/4 → 4/4 |
 | 7 | Hook | A quality gate at the end of the session | enforcement | [step07](.lab/walkthroughs/step07.md) | 3/5 → 5/5 |
-| 8 | Skills + workflow (Spec Kit) | Clarify before you build: one prompt, ask first, Spec Kit | ambiguity | [step08](.lab/walkthroughs/step08.md) | 0–1/8 → 7/8 (both clarifying arms) |
+| 8 | Skills + workflow (Spec Kit) | Clarify before you build: one prompt, ask first, Spec Kit | ambiguity | [step08](.lab/walkthroughs/step08.md), [roles](.lab/walkthroughs/step08-stakeholder.md) | 0–1/8 → 7/8 (both clarifying arms) |
 
 The sessions build up: tell it what it can't know (1–3), evidence rather than claims (4–5), rules
 rather than requests (6–7), and clarify before you build (8).

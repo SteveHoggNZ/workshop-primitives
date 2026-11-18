@@ -13,7 +13,8 @@ You should see an `x` next to steps 00 to 07. If not, run `./lab goto 8`. Read
 [docs/backlog.md](../../docs/backlog.md), item B1. It's four bullets. Write down three things it
 doesn't say.
 
-You'll need a partner (or the facilitator) to play the **stakeholder**, with the answer key
+You'll need a partner (or the facilitator) to play the **stakeholder**: read
+[the stakeholder and roles guide](step08-stakeholder.md) first. The stakeholder holds the answer key
 ([.lab/facilitator/step08/answer-key.md](../facilitator/step08/answer-key.md)). The stakeholder
 answers **only what's asked**, in the key's words: for each question, the rows that answer that
 question, and "No preference" for anything the key doesn't cover. Answering more than was asked

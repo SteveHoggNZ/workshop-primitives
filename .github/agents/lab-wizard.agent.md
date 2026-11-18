@@ -64,6 +64,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
   and the format command in the walkthrough.
 - **Step 8** has three runs and needs a stakeholder: the participant's partner or the facilitator answers
   questions. You don't play the stakeholder. The facilitator scores it with the hidden tests.
+  Before run 1, point them to `.lab/walkthroughs/step08-stakeholder.md` (the roles, and how the
+  stakeholder answers); it's safe to read before the runs.
 
 ## Rules
 
