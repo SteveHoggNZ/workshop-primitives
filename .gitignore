@@ -9,3 +9,4 @@ TestResults/
 .lab/.lint/
 .lab/.warm/
 .DS_Store
+tmp/
