@@ -4,6 +4,7 @@
 #:package Microsoft.Diagnostics.Tracing.TraceEvent@3.2.6
 #:property ManagePackageVersionsCentrally=false
 #:property PublishAot=false
+#:property UseAppHost=false
 
 // Times a page or endpoint in-process and samples where the CPU time goes. No server, no installs.
 //   dotnet run --no-cache .agents/skills/dotnet-diagnostics/scripts/profile.cs -- --setup "POST /Bulk?handler=Generate" --path "/Bulk?q=sample task 12"

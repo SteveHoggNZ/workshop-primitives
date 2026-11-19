@@ -107,6 +107,8 @@ Step 8's Spec Kit arm is several sessions and takes about 10 minutes.
 - Run tests with `dotnet test` in the terminal. The editor's test runner is much slower.
 - Stuck or out of order? `./lab list` shows where you are; `./lab goto N` gets you to step N.
 - Windows: use `.\lab` in PowerShell (or `lab` in cmd) wherever this says `./lab`.
+- Locked-down Windows machines: the lab builds no `.exe` files (`UseAppHost=false`), because Attack Surface
+  Reduction rules can block freshly built executables in the temp folder. Everything runs through `dotnet`.
 - `./lab help` lists every command.
 
 ## The app

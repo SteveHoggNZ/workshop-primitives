@@ -17,5 +17,12 @@
     <AnalysisMode>None</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <!--
+      No app host (.exe): `dotnet run` starts programs as `dotnet <name>.dll`. Corporate Attack Surface Reduction
+      rules block a freshly built .exe in the temp folder, which is where `dotnet run file.cs` builds the skill
+      scripts ("Access is denied"). Starting them through dotnet.exe is allowed.
+    -->
+    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 </Project>

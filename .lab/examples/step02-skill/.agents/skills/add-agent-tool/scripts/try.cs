@@ -1,5 +1,6 @@
 #:project ../../../../src/Tasks.App/Tasks.App.csproj
 #:property PublishAot=false
+#:property UseAppHost=false
 
 // Sends messages to the in-app agent against a fresh, seeded task list and prints the conversation.
 //   dotnet run --no-cache .agents/skills/add-agent-tool/scripts/try.cs -- "help" "list"
