@@ -60,7 +60,8 @@ continue from the right phase. One phase per reply; wait for them before moving 
   session skill's script; item 5 is in the final message.
 - **Steps 5 and 6** are scored mostly from the session (the order of commands, and the final message),
   plus `git status` for Step 6's protected file.
-- **Step 7** starts with `./lab scenario 7` (once, before the Before run). Score it with `./lab lint`, `dotnet test`
+- **Step 7** starts with `./lab scenario 7` (once, before the Before run). It commits to the participant's
+  current branch, not `main` ("on main" in the walkthrough is the story); say so if you describe it. Score it with `./lab lint`, `dotnet test`
   and the format command in the walkthrough.
 - **Step 8** has three runs and needs a stakeholder: the participant's partner or the facilitator answers
   questions. You don't play the stakeholder. The facilitator scores it with the hidden tests.

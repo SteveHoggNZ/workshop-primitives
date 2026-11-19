@@ -11,13 +11,15 @@ prompt again in a new session, and compare. If you install first, there's nothin
 
 You should see an `x` next to steps 00 to 06. If not, run `./lab goto 7`.
 
-**Setup: a real Monday morning.** Three things are true on `main` when you start:
+**Setup: a real Monday morning.** In the story, three things have just landed on the team's main branch.
+In your repo they arrive as one commit on the branch you're doing the lab on (your `lab/<name>` branch,
+never `main`: the command refuses to run there):
 
 ```bash
 ./lab scenario 7        # Windows: .\lab scenario 7
 ```
 
-It commits (so `./lab reset` won't undo it):
+It commits these to your current branch (so `./lab reset` won't undo them):
 
 - `docs/lint-baseline.md` lowered from 6 to 5: the team has decided the lint count only goes down;
 - a half-finished change to `Services/ActivityFeed.cs`, which breaks one existing test;
