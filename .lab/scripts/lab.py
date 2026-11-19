@@ -99,7 +99,8 @@ def prepare(step, phase, model, tag):
     sh(["git", "gc", "-q", "--prune=now"], run, check=False)
     upto = step + 1 if phase == "after" else step
     if upto > 0:
-        sh(["./lab", "goto", str(upto)], run, env={"GIT_AUTHOR_NAME": "Lab Harness", "GIT_AUTHOR_EMAIL": "lab@example.invalid",
+        sh(["./lab", "goto", str(upto)], run, env={"LAB_ALLOW_MAIN": "1",
+                                                    "GIT_AUTHOR_NAME": "Lab Harness", "GIT_AUTHOR_EMAIL": "lab@example.invalid",
                                                     "GIT_COMMITTER_NAME": "Lab Harness", "GIT_COMMITTER_EMAIL": "lab@example.invalid"})
     shutil.rmtree(run / ".lab")
     shutil.rmtree(run / ".lab-bin", ignore_errors=True)

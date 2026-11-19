@@ -61,9 +61,39 @@ internal static class Git
         return changes;
     }
 
+    /// <summary>The checked-out branch, or null when HEAD is detached.</summary>
+    public static string? CurrentBranch()
+    {
+        var result = Run("symbolic-ref", "--quiet", "--short", "HEAD");
+        return result.ExitCode == 0 && result.Output.Trim().Length > 0 ? result.Output.Trim() : null;
+    }
+
+    /// <summary>
+    /// Lab commands that commit (apply, goto, scenario, ratchet) refuse to run on main or master, so step commits
+    /// never land in the lab's own history. LAB_ALLOW_MAIN=1 overrides it (the validation harness's clones use main).
+    /// </summary>
+    public static void RefuseOnMain(string command)
+    {
+        if (Environment.GetEnvironmentVariable("LAB_ALLOW_MAIN") == "1")
+        {
+            return;
+        }
+
+        var branch = CurrentBranch();
+        if (branch is "main" or "master")
+        {
+            throw new LabException(
+                $"./lab {command} commits to the current branch, and you're on {branch}. Do the lab on your own branch, " +
+                "so main stays clean:\n\n" +
+                "  git switch -c lab/<your-name>     (or, if you already have one: git switch lab/<your-name>)\n\n" +
+                "Then run the command again. Nothing was changed.");
+        }
+    }
+
     /// <summary>Commits exactly these paths, with a fallback identity if git has none configured.</summary>
     public static void Commit(string subject, IReadOnlyCollection<string> paths)
     {
+        RefuseOnMain("commit");
         if (paths.Count > 0)
         {
             Out(["add", "--", .. paths]);

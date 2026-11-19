@@ -26,6 +26,7 @@ internal static class StepCommands
     public static int Apply(string[] args)
     {
         var (number, tools, _) = Parse(args, "apply");
+        Git.RefuseOnMain("apply");
         var step = Steps.Get(number);
         if (Steps.Installed(step, Git.Subjects()))
         {
@@ -49,6 +50,7 @@ internal static class StepCommands
     public static int Goto(string[] args)
     {
         var (number, tools, solutions) = Parse(args, "goto");
+        Git.RefuseOnMain("goto");
         var steps = Steps.All();
         if (number < 0 || number > steps.Max(s => s.Number) + 1)
         {

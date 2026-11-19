@@ -53,6 +53,7 @@ static int Help()
 static int Ratchet(string[] args)
 {
     // The team lowers the lint baseline (Step 7's setup). Its own commit, so ./lab reset doesn't undo it.
+    Git.RefuseOnMain("ratchet");
     var file = Path.Combine(Repo.Root, "docs", "lint-baseline.md");
     var text = File.ReadAllText(file);
     var match = System.Text.RegularExpressions.Regex.Match(text, @"^Total:\s*(\d+)", System.Text.RegularExpressions.RegexOptions.Multiline);
@@ -80,6 +81,7 @@ static int Scenario(string[] args)
     // A step's starting situation (.lab/scenarios/stepNN/), committed so ./lab reset keeps it. Step 7: the team just
     // lowered the lint baseline, and someone left a half-finished change on main.
     var n = args.Length > 0 && int.TryParse(args[0], out var v) ? v : throw new LabException("Usage: ./lab scenario N");
+    Git.RefuseOnMain("scenario");
     var dir = Path.Combine(Repo.Root, ".lab", "scenarios", $"step{n:00}");
     if (!Directory.Exists(dir))
     {
